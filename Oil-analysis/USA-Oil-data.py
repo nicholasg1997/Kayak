@@ -160,8 +160,6 @@ def exports(api_key=API_KEY, group=True):
     return export
 
 
-exports = exports()
-imports = imports()
 
 
 
