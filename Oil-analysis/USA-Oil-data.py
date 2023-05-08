@@ -10,7 +10,6 @@ import os
 
 load_dotenv()
 API_KEY = os.getenv("EIA_TOKEN")
-API_KEY = "cH2rbrRMzTedExBIE6okFZvmLQCkpjmys1rjwiVY"
 
 
 def MBBL_production (frequency="monthly", API_KEY=API_KEY, start_date="2015-12"):
@@ -46,6 +45,9 @@ def MBBL_production (frequency="monthly", API_KEY=API_KEY, start_date="2015-12")
     df_MBBL = df_MBBL.sort_index(ascending=False)
 
     return df_MBBL
+
+data = MBBL_production()
+print(data)
 
 
 
