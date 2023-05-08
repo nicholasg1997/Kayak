@@ -58,8 +58,6 @@ def MBBL_production (frequency="monthly", API_KEY=API_KEY, start_date="2015-12")
 
     return df_MBBL
 
-data = MBBL_production()
-print(data)
 
 def crude_oil_stocks(frequency="monthly", API_KEY=API_KEY, start_date="2015-12"):
     """""
@@ -86,11 +84,29 @@ def crude_oil_stocks(frequency="monthly", API_KEY=API_KEY, start_date="2015-12")
 
     return storage_data
 
+def imports_exports(API_KEY=API_KEY):
+    """""
+    Get the data from EIA.gov on crude oil imports and exports
+    returns weekly imports and exports in MBBL
+    :param
+    API_KEY: str, API key from EIA.gov
+    :return
+    pandas dataframe
+    """"
 
-data_1 = MBBL_production()
-data_2 = crude_oil_stocks()
+    url = f"https://api.eia.gov/v2/petroleum/move/wkly/data/?api_key={API_KEY}&\
+    frequency=weekly&data[0]=value&facets[product][]=EP00&facets[product][]=EPC0&sort[0][column]=period&\
+    sort[0][direction]=desc&offset=0&length=5000"
 
-print(data_2)
+    df = get_request(url)
+
+    exports = df[df['process-name'].str.contains('exports', case=False)]
+    imports = df[df['process-name'].str.contains('imports', case=False)]
+
+    return exports, imports
+
+
+
 
 
 
