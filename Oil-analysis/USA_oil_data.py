@@ -52,7 +52,7 @@ def mbbl_production(frequency="monthly", api_key=API_KEY, start_date="2015-12"):
     df = get_request(url)
 
     df['barrels_per_month'] = df.apply(lambda x: int(x['value']) * 30 if x['units'] == 'MBBL/D'
-                                       else int(x['value']), axis=1)
+    else int(x['value']), axis=1)
 
     df_mbbl = df['barrels_per_month']
     df_mbbl = df_mbbl.groupby('period').sum()
@@ -109,7 +109,7 @@ def imports_exports(api_key=API_KEY):
     return imports, exports
 
 
-def imports(api_key=API_KEY, group=True):
+def oil_imports(api_key=API_KEY, group=True):
     """
     Crude oil imports by country to destination,
     includes type, grade, quantity. Source: EIA-814 Interactive data
@@ -135,7 +135,7 @@ def imports(api_key=API_KEY, group=True):
     return df
 
 
-def exports(api_key=API_KEY, group=True):
+def oil_exports(api_key=API_KEY, group=True):
     """
     Crude oil exports by country to destination in MBBL
     :param
@@ -151,18 +151,10 @@ def exports(api_key=API_KEY, group=True):
     df = get_request(url)
 
     df['barrels_per_month'] = df.apply(lambda x: int(x['value']) * 30 if x['units'] == 'MBBL/D'
-                                       else int(x['value']), axis=1)
+    else int(x['value']), axis=1)
 
     export = df['barrels_per_month']
     export = export.groupby('period').sum()
     export = export.sort_index(ascending=False)
 
     return export
-
-
-
-
-
-
-
-
