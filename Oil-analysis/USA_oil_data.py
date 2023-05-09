@@ -97,14 +97,14 @@ def imports_exports(api_key=API_KEY):
     pandas dataframe
     """
 
-    url = f"https://api.eia.gov/v2/petroleum/move/wkly/data/?api_key={api_key}&\
-    frequency=weekly&data[0]=value&facets[product][]=EP00&facets[product][]=EPC0&sort[0][column]=period&\
-    sort[0][direction]=desc&offset=0&length=5000"
+    url = f"https://api.eia.gov/v2/petroleum/move/wkly/data/?api_key={API_KEY}&\
+    frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[process][]=EEX&\
+    facets[process][]=IM0&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
 
     df = get_request(url)
 
-    exports = df[df['process-name'].str.contains('exports', case=False)]
-    imports = df[df['process-name'].str.contains('imports', case=False)]
+    exports = df[df['process-name'].str.contains('exports', case=False)]['value'].rename('exports')
+    imports = df[df['process-name'].str.contains('imports', case=False)]['value'].rename('imports')
 
     return imports, exports
 
@@ -158,3 +158,4 @@ def oil_exports(api_key=API_KEY, group=True):
     export = export.sort_index(ascending=False)
 
     return export
+
