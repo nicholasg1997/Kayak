@@ -75,6 +75,7 @@ def crude_oil_stocks(frequency="monthly", api_key=API_KEY, start_date="2000-12")
     """
     Get the data from EIA.gov on crude oil stocks by month or year
     returns monthly stocks in MBBL
+    crude oil stocks at tank farms and pipelines
     :param 
     frequency: str, "monthly" or "annual"
     API_KEY: str, API key from EIA.gov
@@ -145,7 +146,7 @@ def oil_imports(api_key=API_KEY, group=True):
     return df
 
 
-def oil_exports(api_key=API_KEY, group=True):
+def oil_exports(api_key=API_KEY):
     """
     Crude oil exports by country to destination in MBBL
     :param
@@ -192,3 +193,39 @@ def proved_nonprod_reserves(api_key=API_KEY):
     data = df.groupby('period').sum()
 
     return data
+
+def weekly_stocks(api_key=API_KEY):
+    """
+    Weekly stocks of crude oil and petroleum products in MBBL
+
+    :param api_key:
+    :return:
+    """
+
+    url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
+    frequency=weekly&data[0]=value&facets[product][]=EPC0&sort[0][column]=period&\
+    sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url)
+    df = df.groupby('period').sum()
+    df = df.sort_index(ascending=False)
+    df = df['value']
+    df = df.rename('weekly_stocks')
+
+    return df
+
+
+def weekly_product_supplied(api_key=API_KEY):
+
+    url = f"https://api.eia.gov/v2/petroleum/cons/wpsup/data/?api_key={api_key}&\
+    frequency=weekly&data[0]=value&sort[0][column]=period&\
+    sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url)
+    df = df.groupby('period').sum()
+    df = df.sort_index(ascending=False)
+    df = df['value']
+    df = df.rename('weekly_product_supplied')
+
+    return df
+
