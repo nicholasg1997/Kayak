@@ -1,8 +1,14 @@
+"""
+retrieves data from FRED
+https://fred.stlouisfed.org
+"""
 from full_fred.fred import Fred
 import pandas as pd
+from datetime import datetime
 
 fred = Fred('FRED_key.txt')
-today = pd.Timestamp.today().strftime("%Y-%m-%d")
+today = datetime.now().strftime("%Y-%m-%d")
+
 
 def to_numeric(val):
     """
@@ -31,8 +37,6 @@ def get_fred_data(series_id, start_date="2000-01-01"):
     data = fred.get_series_df(series_id, observation_start=start_date, observation_end=today)
     data = data[['date', 'value']]
     data = data.set_index('date')
-    # data = data.sort_index(ascending=False)
     data['value'] = data['value'].apply(to_numeric)
 
     return data
-

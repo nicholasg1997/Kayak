@@ -16,22 +16,16 @@ today = pd.Timestamp.today().strftime("%Y-%m")
 
 
 def get_request(url):
-    """"
-    returns request from EIA.gov
-    :param
-    url: str, url from EIA.gov
-    :return
-    pandas dataframe
     """
-
-    r = requests.get(url)
-    data = r.json()
-    data = data['response']['data']
-
+    Returns a pandas dataframe from an API request to EIA.gov
+    :param url: str, URL for API request
+    :return: pandas dataframe
+    """
+    response = requests.get(url)
+    data = response.json()['response']['data']
     df = pd.DataFrame(data)
     df['period'] = pd.to_datetime(df['period'])
     df = df.set_index('period')
-
     return df
 
 
@@ -56,9 +50,7 @@ def mbbl_production(frequency="monthly", api_key=API_KEY, end_date=today):
     df['barrels_per_month'] = df.apply(lambda x: int(x['value']) * 30 if x['units'] == 'MBBL/D'
     else int(x['value']), axis=1)
 
-    df_mbbl = df['barrels_per_month']
-    df_mbbl = df_mbbl.groupby('period').sum()
-    df_mbbl = df_mbbl.sort_index(ascending=False)
+    df_mbbl = df['barrels_per_month'].groupby('period').sum().sort_index(ascending=False)
 
     return df_mbbl
 
