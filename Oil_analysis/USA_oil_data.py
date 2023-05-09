@@ -29,7 +29,7 @@ def get_request(url):
     return df
 
 
-def mbbl_production(frequency="monthly", api_key=API_KEY, end_date=today):
+def mbbl_production(frequency="monthly", api_key=API_KEY, end_date=today, years=5):
     """
     Get the data from EIA.gov on crude oil production my month or year
     returns monthly MBBL data
@@ -37,22 +37,38 @@ def mbbl_production(frequency="monthly", api_key=API_KEY, end_date=today):
     frequency: str, "monthly" or "annual"
     API_KEY: str, API key from EIA.gov
     start_date: str, "YYYY-MM"
+    years: int, number of years to retrieve data (must be divisible by 5)
     :return 
     pandas dataframe
     """
+    assert years % 5 == 0, "years must be divisible by 5"
 
-    url = f"https://api.eia.gov/v2/petroleum/crd/crpdn/data/?api_key={api_key}&\
-    frequency={frequency}&end={end_date}&data[0]=value&sort[0][column]=period&\
-    sort[0][direction]=desc&offset=0"
+    #1000 for every year, increment in 5000
+    offset = 0
+    master_df = pd.DataFrame()
 
-    df = get_request(url)
+    while years > 0:
 
-    df['barrels_per_month'] = df.apply(lambda x: int(x['value']) * 30 if x['units'] == 'MBBL/D'
-    else int(x['value']), axis=1)
+        url = f"https://api.eia.gov/v2/petroleum/crd/crpdn/data/?api_key={api_key}&\
+        frequency={frequency}&end={end_date}&data[0]=value&sort[0][column]=period&\
+        sort[0][direction]=desc&offset={offset}&length=5000"
 
-    df_mbbl = df['barrels_per_month'].groupby('period').sum().sort_index(ascending=False)
+        df = get_request(url)
 
-    return df_mbbl
+        df['barrels_per_month'] = df.apply(lambda x: int(x['value']) * 30 if x['units'] == 'MBBL/D'
+        else int(x['value']), axis=1)
+
+        df_mbbl = df['barrels_per_month'].groupby('period').sum().sort_index(ascending=False)
+        offset += 5000
+        years -= 5
+
+        master_df = pd.concat([master_df, df_mbbl]).drop_duplicates()
+
+    master_df = master_df.rename(columns={0: 'barrels'})
+    master_df.index.name = 'period'
+    master_df = master_df.groupby(master_df.index).sum()
+
+    return master_df
 
 
 def crude_oil_stocks(frequency="monthly", api_key=API_KEY, start_date="2000-12"):
