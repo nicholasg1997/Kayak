@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 load_dotenv()
 API_KEY = os.getenv("EIA_TOKEN")
 
+today = pd.Timestamp.today().strftime("%Y-%m")
+
 
 def get_request(url):
     """"
@@ -33,7 +35,7 @@ def get_request(url):
     return df
 
 
-def mbbl_production(frequency="monthly", api_key=API_KEY, start_date="2015-12"):
+def mbbl_production(frequency="monthly", api_key=API_KEY, end_date=today):
     """
     Get the data from EIA.gov on crude oil production my month or year
     returns monthly MBBL data
@@ -46,7 +48,7 @@ def mbbl_production(frequency="monthly", api_key=API_KEY, start_date="2015-12"):
     """
 
     url = f"https://api.eia.gov/v2/petroleum/crd/crpdn/data/?api_key={api_key}&\
-    frequency={frequency}&start={start_date}&data[0]=value&sort[0][column]=period&\
+    frequency={frequency}&end={end_date}&data[0]=value&sort[0][column]=period&\
     sort[0][direction]=desc&offset=0"
 
     df = get_request(url)
@@ -61,7 +63,7 @@ def mbbl_production(frequency="monthly", api_key=API_KEY, start_date="2015-12"):
     return df_mbbl
 
 
-def crude_oil_stocks(frequency="monthly", api_key=API_KEY, start_date="2015-12"):
+def crude_oil_stocks(frequency="monthly", api_key=API_KEY, start_date="2000-12"):
     """
     Get the data from EIA.gov on crude oil stocks by month or year
     returns monthly stocks in MBBL
@@ -158,3 +160,27 @@ def oil_exports(api_key=API_KEY, group=True):
     export = export.sort_index(ascending=False)
 
     return export
+
+
+def proved_nonprod_reserves(api_key=API_KEY):
+    """
+    proved non producing reserves in MMBBL
+    annual data only
+    :param
+    api_key: str, api key from EIA.gov
+    :return
+    pandas dataframe
+    """
+    url = f"https://api.eia.gov/v2/petroleum/crd/nprod/data/?api_key={api_key}&\
+    frequency=annual&data[0]=value&facets[product][]=EPC0&sort[0][column]=period&\
+    sort[0][direction]=desc&offset=0&length=5000"
+
+    r = requests.get(url)
+    data = r.json()
+    data = data['response']['data']
+
+    df = pd.DataFrame(data)
+    df = df.set_index('period')['value'].dropna().rename('proved_nonprod_reserves')
+    data = df.groupby('period').sum()
+
+    return data
