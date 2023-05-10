@@ -109,8 +109,8 @@ def imports_exports(api_key=API_KEY):
     """
 
     url = f"https://api.eia.gov/v2/petroleum/move/wkly/data/?api_key={api_key}&\
-    frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[process][]=EEX&\
-    facets[process][]=IM0&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+    frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[series][]=WCREXUS2&facets[series][]=WCRIMUS2&\
+    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
 
     df = get_request(url)
 
@@ -194,6 +194,7 @@ def proved_nonprod_reserves(api_key=API_KEY):
 
     return data
 
+
 def weekly_stocks(api_key=API_KEY):
     """
     Weekly stocks of crude oil and petroleum products in MBBL
@@ -203,11 +204,11 @@ def weekly_stocks(api_key=API_KEY):
     """
 
     url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
-    frequency=weekly&data[0]=value&facets[product][]=EPC0&sort[0][column]=period&\
-    sort[0][direction]=desc&offset=0&length=5000"
+    frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[series][]=WCRSTUS1&\
+    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=500"
 
     df = get_request(url)
-    df = df.groupby('period').sum()
+    #df = df.groupby('period').sum()
     df = df.sort_index(ascending=False)
     df = df['value']
     df = df.rename('weekly_stocks')
@@ -226,6 +227,19 @@ def weekly_product_supplied(api_key=API_KEY):
     df = df.sort_index(ascending=False)
     df = df['value']
     df = df.rename('weekly_product_supplied')
+
+    return df
+
+
+def spr_reserves(api_key=API_KEY):
+
+    url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
+    frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[series][]=WCSSTUS1&\
+    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url)
+    df = df['value']
+    df = df.rename('spr_reserves')
 
     return df
 

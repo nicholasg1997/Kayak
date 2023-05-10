@@ -59,22 +59,14 @@ class Prices:
 
     def long_term_data(self, series_id, start_date=None, end_date=None):
 
-        if series_id == 'WTI':
+        if series_id.lower() == 'wti':
             series_id = "MCOILWTICO"
-        elif series_id == 'Brent':
+        elif series_id.lower() == 'brent':
             series_id = "POILBREUSDM"
 
         data = get_fred_data(series_id, start_date, end_date)
         return data
 
-
-
-
-    def other_oil(self, location):
-        pass
-
-    def copper(self):
-        pass
 
     def get_request(self, url):
         r = requests.get(url)
@@ -86,7 +78,6 @@ class Prices:
         self.EIA_key = os.getenv("EIA_TOKEN")
         self.FRED_key = os.getenv("FRED_API_KEY")
         self.FMP_key = os.getenv("FMP_KEY")
-        self.no_key = os.getenv("NO_KEY")
 
         if self.EIA_key is None:
             print("No EIA key found")
@@ -97,7 +88,3 @@ class Prices:
         if self.FMP_key is None:
             print("No FMP key found")
 
-
-p = Prices()
-data = p.long_term_data('WTI')
-print(data)
