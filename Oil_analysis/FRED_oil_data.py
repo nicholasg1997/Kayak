@@ -24,7 +24,7 @@ def to_numeric(val):
         return float(val)
 
 
-def get_fred_data(series_id, start_date="2000-01-01", api_key=None):
+def get_fred_data(series_id, start_date=None, end_date=None, api_key=None):
     """
     Get the data from FRED
     :param
@@ -37,12 +37,17 @@ def get_fred_data(series_id, start_date="2000-01-01", api_key=None):
 
     if api_key is None:
         fred = Fred('FRED_key.txt')
+
     else:
         fred = Fred(api_key)
 
-    today = datetime.now().strftime("%Y-%m-%d")
+    if start_date is None:
+        start_date = "2000-01-01"
 
-    data = fred.get_series_df(series_id, observation_start=start_date, observation_end=today)
+    if end_date is None:
+        end_date = datetime.now().strftime("%Y-%m-%d")
+
+    data = fred.get_series_df(series_id, observation_start=start_date, observation_end=end_date)
     data = data[['date', 'value']]
     data = data.set_index('date')
     data['value'] = data['value'].apply(to_numeric)

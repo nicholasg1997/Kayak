@@ -7,6 +7,7 @@ import pandas as pd
 import os
 from dotenv import load_dotenv
 import requests
+from FRED_oil_data import get_fred_data
 
 load_dotenv()
 
@@ -56,8 +57,18 @@ class Prices:
             intraday_df.set_index('date', inplace=True)
             return intraday_df
 
-    def long_term_data(self):
-        pass
+    def long_term_data(self, series_id, start_date=None, end_date=None):
+
+        if series_id == 'WTI':
+            series_id = "MCOILWTICO"
+        elif series_id == 'Brent':
+            series_id = "POILBREUSDM"
+
+        data = get_fred_data(series_id, start_date, end_date)
+        return data
+
+
+
 
     def other_oil(self, location):
         pass
@@ -88,5 +99,5 @@ class Prices:
 
 
 p = Prices()
-data = p.short_term_data(real_time=False, frequency='daily', contract='BZUSD')
+data = p.long_term_data('WTI')
 print(data)
