@@ -43,12 +43,11 @@ def mbbl_production(frequency="monthly", api_key=API_KEY, end_date=today, years=
     """
     assert years % 5 == 0, "years must be divisible by 5"
 
-    #1000 for every year, increment in 5000
+    # 1000 for every year, increment in 5000
     offset = 0
     master_df = pd.DataFrame()
 
     while years > 0:
-
         url = f"https://api.eia.gov/v2/petroleum/crd/crpdn/data/?api_key={api_key}&\
         frequency={frequency}&end={end_date}&data[0]=value&sort[0][column]=period&\
         sort[0][direction]=desc&offset={offset}&length=5000"
@@ -199,25 +198,23 @@ def weekly_stocks(api_key=API_KEY):
     """
     Weekly stocks of crude oil and petroleum products in MBBL
 
-    :param api_key:
+    :param years: int, number of years to get data for
+    :param api_key: str, api key from EIA.gov
     :return:
+    pandas dataframe
     """
 
     url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
     frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[series][]=WCRSTUS1&\
-    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=500"
+    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
 
     df = get_request(url)
-    #df = df.groupby('period').sum()
-    df = df.sort_index(ascending=False)
-    df = df['value']
-    df = df.rename('weekly_stocks')
+    df.rename(columns={'value': 'stocks'}, inplace=True)
 
-    return df
+    return df['stocks']
 
 
 def weekly_product_supplied(api_key=API_KEY):
-
     url = f"https://api.eia.gov/v2/petroleum/cons/wpsup/data/?api_key={api_key}&\
     frequency=weekly&data[0]=value&sort[0][column]=period&\
     sort[0][direction]=desc&offset=0&length=5000"
@@ -232,7 +229,6 @@ def weekly_product_supplied(api_key=API_KEY):
 
 
 def spr_reserves(api_key=API_KEY):
-
     url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
     frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[series][]=WCSSTUS1&\
     sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
