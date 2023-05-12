@@ -111,7 +111,7 @@ def crude_oil_stocks(frequency="monthly", api_key=API_KEY, cushing=False):
 def imports_exports(api_key=API_KEY):
     """
     Get the data from EIA.gov on crude oil imports and exports
-    returns weekly imports and exports in MBBL
+    returns weekly imports and exports in MBBL/D
     :param
     API_KEY: str, API key from EIA.gov
     :return
