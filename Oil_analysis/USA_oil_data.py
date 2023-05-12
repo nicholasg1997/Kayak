@@ -308,5 +308,8 @@ def gasoline_sales_resale(api_key=API_KEY):
     return df
 
 
+# TODO: get data from the following url on consumption
 
-
+url = "https://api.eia.gov/v2/total-energy/data/?frequency=monthly&\
+data[0]=value&facets[msn][]=COSQPUS&facets[msn][]=DFACPUS&facets[msn][]=DFCCPUS&facets[msn][]=DFICPUS&\
+facets[msn][]=DFRCPUS&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
