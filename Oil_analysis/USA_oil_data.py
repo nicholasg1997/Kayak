@@ -18,6 +18,7 @@ today = pd.Timestamp.today().strftime("%Y-%m")
 def get_request(url, group=False, name='value'):
     """
     Returns a pandas dataframe from an API request to EIA.gov
+    :param name: data column name
     :param url: str, URL for API request
     :param group: bool, if True, group by period
     :return: pandas dataframe
@@ -34,48 +35,7 @@ def get_request(url, group=False, name='value'):
 
     return df
 
-
-def mbbl_production(frequency="monthly", api_key=API_KEY, end_date=today, years=5):
-    """
-    Get the data from EIA.gov on crude oil production my month or year
-    returns monthly MBBL data
-    :param 
-    frequency: str, "monthly" or "annual"
-    API_KEY: str, API key from EIA.gov
-    start_date: str, "YYYY-MM"
-    years: int, number of years to retrieve data (must be divisible by 5)
-    :return 
-    pandas dataframe
-    """
-    assert years % 5 == 0, "years must be divisible by 5"
-
-    # 1000 for every year, increment in 5000
-    offset = 0
-    master_df = pd.DataFrame()
-
-    while years > 0:
-        url = f"https://api.eia.gov/v2/petroleum/crd/crpdn/data/?api_key={api_key}&\
-        frequency={frequency}&end={end_date}&data[0]=value&sort[0][column]=period&\
-        sort[0][direction]=desc&offset={offset}&length=5000"
-
-        df = get_request(url)
-
-        df = df[df['units'] == 'MBBL']
-        df = df.groupby('period').sum()['value']
-        df.rename('production', inplace=True)
-
-        offset += 5000
-        years -= 5
-
-        master_df = pd.concat([master_df, df]).drop_duplicates()
-
-    master_df = master_df.rename(columns={0: 'production'})
-    master_df.index.name = 'period'
-    master_df = master_df.groupby(master_df.index).sum()
-
-    return master_df
-
-
+#SUPPLY
 def crude_oil_stocks(frequency="monthly", api_key=API_KEY, cushing=False):
     """
     Get the data from EIA.gov on crude oil stocks by month or year
@@ -84,7 +44,8 @@ def crude_oil_stocks(frequency="monthly", api_key=API_KEY, cushing=False):
     :param 
     frequency: str, "monthly" or "annual"
     API_KEY: str, API key from EIA.gov
-    cushings: bool, if True, returns Cushing, OK Ending Stocks of Crude Oil (Thousand Barrels), if False, exclude it
+    cushing: bool, if True, returns Cushing, OK Ending Stocks of Crude Oil (Thousand Barrels), if False, return stocks
+     at tank farms and pipelines for all 5 PADDs
     :return 
     pandas dataframe
     """
@@ -107,20 +68,24 @@ def crude_oil_stocks(frequency="monthly", api_key=API_KEY, cushing=False):
 
     return storage_data
 
-
-def imports_exports(api_key=API_KEY):
+# DEMAND
+def imports_exports(api_key=API_KEY, only_crude=True):
     """
     Get the data from EIA.gov on crude oil imports and exports
-    returns weekly imports and exports in MBBL
+    returns weekly imports and exports in MBBL/D
     :param
     API_KEY: str, API key from EIA.gov
     :return
     pandas dataframe
     """
-
-    url = f"https://api.eia.gov/v2/petroleum/move/wkly/data/?api_key={api_key}&\
-    frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[series][]=WCREXUS2&facets[series][]=WCRIMUS2&\
-    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+    if only_crude:
+        url = f"https://api.eia.gov/v2/petroleum/move/wkly/data/?api_key={api_key}&\
+            frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[series][]=WCREXUS2&facets[series][]=WCRIMUS2&\
+            sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+    else:
+        url = f"https://api.eia.gov/v2/petroleum/move/wkly/data/?api_key={api_key}&\
+        frequency=weekly&data[0]=value&facets[product][]=EP00&facets[series][]=WTTEXUS2&\
+        facets[series][]=WTTIMUS2&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
 
     df = get_request(url)
 
@@ -128,57 +93,6 @@ def imports_exports(api_key=API_KEY):
     imports = df[df['process-name'].str.contains('imports', case=False)]['value'].rename('imports')
 
     return imports, exports
-
-
-def oil_imports(api_key=API_KEY, group=True):
-    """
-    Crude oil imports by country to destination,
-    includes type, grade, quantity. Source: EIA-814 Interactive data
-    product: www.eia.gov/petroleum/imports/companylevel/
-    :param
-    api_key: str, api key from EIA.gov
-    :return:
-    pandas dataframe
-    """
-
-    url = f"https://api.eia.gov/v2/crude-oil-imports/data/?api_key={api_key}&\
-    frequency=monthly&data[0]=quantity&\
-    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
-
-    df = get_request(url)
-
-    if group:
-        df = df.groupby('period').sum()
-        df = df.sort_index(ascending=False)
-        df = df['quantity']
-        df = df.rename('quantity_imported')
-
-    return df
-
-
-def oil_exports(api_key=API_KEY):
-    """
-    Crude oil exports by country to destination in MBBL
-    :param
-    api_key: str, api key from EIA.gov
-    :return
-    pandas dataframe
-    """
-
-    url = f"https://api.eia.gov/v2/petroleum/move/exp/data/?api_key={api_key}&\
-    frequency=monthly&data[0]=value&facets[product][]=EP00&\
-    facets[product][]=EPC0&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
-
-    df = get_request(url)
-
-    df['barrels_per_month'] = df.apply(lambda x: int(x['value']) * 30 if x['units'] == 'MBBL/D'
-    else int(x['value']), axis=1)
-
-    export = df['barrels_per_month']
-    export = export.groupby('period').sum()
-    export = export.sort_index(ascending=False)
-
-    return export
 
 
 def proved_nonprod_reserves(api_key=API_KEY):
@@ -191,25 +105,23 @@ def proved_nonprod_reserves(api_key=API_KEY):
     pandas dataframe
     """
     url = f"https://api.eia.gov/v2/petroleum/crd/nprod/data/?api_key={api_key}&\
-    frequency=annual&data[0]=value&facets[product][]=EPC0&sort[0][column]=period&\
-    sort[0][direction]=desc&offset=0&length=5000"
+    frequency=annual&data[0]=value&facets[product][]=EPC0&facets[duoarea][]=NUS&\
+    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
 
     r = requests.get(url)
-    data = r.json()
-    data = data['response']['data']
-
+    data = r.json()['response']['data']
     df = pd.DataFrame(data)
-    df = df.set_index('period')['value'].dropna().rename('proved_nonprod_reserves')
-    data = df.groupby('period').sum()
+    df = df.set_index('period')
+    df = df['value']
+    df = df.rename('proved_nonprod_reserves')
 
-    return data
+    return df
 
 
 def weekly_stocks(api_key=API_KEY):
     """
     Weekly stocks of crude oil and petroleum products in MBBL
 
-    :param years: int, number of years to get data for
     :param api_key: str, api key from EIA.gov
     :return:
     pandas dataframe
@@ -226,6 +138,16 @@ def weekly_stocks(api_key=API_KEY):
 
 
 def weekly_product_supplied(api_key=API_KEY):
+    """
+    USA Weekly product supplied in MBBL/D
+    includes residual fuel oils, propane and propylene, other oils, kerosene-type jet fuel,
+    distillate fuel oil, finished motor gasoline
+    :param
+    api_key: str, api key from EIA.gov
+    :return:
+    pandas dataframe
+    """
+
     url = f"https://api.eia.gov/v2/petroleum/cons/wpsup/data/?api_key={api_key}&\
     frequency=weekly&data[0]=value&sort[0][column]=period&\
     sort[0][direction]=desc&offset=0&length=5000"
@@ -236,6 +158,14 @@ def weekly_product_supplied(api_key=API_KEY):
 
 
 def spr_reserves(api_key=API_KEY):
+    """
+    Weekly SPR reserves in MBBL
+    :param
+    api_key: str, api key from EIA.gov
+    :return:
+    pandas dataframe
+    """
+
     url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
     frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[series][]=WCSSTUS1&\
     sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
@@ -245,32 +175,23 @@ def spr_reserves(api_key=API_KEY):
     return df
 
 
-def ending_stocks(api_key=API_KEY):
-    url = f"https://api.eia.gov/v2/petroleum/stoc/typ/data/?api_key={api_key}&\
-    frequency=monthly&data[0]=value&facets[product][]=EPC0&facets[process][]=SAE&\
-    facets[series][]=MCRSTUS1&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
-
-    df = get_request(url, group=True, name='ending_stocks')
-
-    return df
-
-
-def product_supplied(api_key=API_KEY):
-    """
-    total crude oil and petroleum product supplied by month in MBBL
-    :param api_key: str, api key from EIA.gov
+def ending_stocks(api_key=API_KEY, just_crude=True):
+    """ weekly ending stocks of crude oil or crude oil and petroleum products in MBBL
+    :param
+    api_key: str, api key from EIA.gov
+    just_crude: bool, if True, only crude oil stocks are returned
     :return:
-    pandas dataframe
-    """
+    pandas dataframe"""
+    if just_crude:
+        product = "EPC0"
+    else:
+        product = "EP00"
 
-    url = f"https://api.eia.gov/v2/petroleum/cons/psup/data/?api_key={api_key}&\
-    frequency=monthly&data[0]=value&facets[duoarea][]=NUS&facets[product][]=EP00&\
+    url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
+    frequency=weekly&data[0]=value&facets[product][]={product}&facets[process][]=SAE&\
     sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
 
-    df = get_request(url)
-    df = df[df['units'] == 'MBBL']
-    df = df.groupby('period').sum()['value']
-    df.rename('product_supplied', inplace=True)
+    df = get_request(url, group=True, name='ending_stocks')
 
     return df
 
@@ -285,7 +206,9 @@ def gasoline_sales_end_user(api_key=API_KEY):
     frequency=monthly&data[0]=value&facets[process][]=VTR&facets[duoarea][]=NUS&facets[product][]=EPM0&\
     sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
 
-    df = get_request(url, group=True, name='gasoline_sales_end_user')
+    df = get_request(url, group=False)
+    df = df['value']
+    df = df.rename('gasoline_sales_end_user')
 
     return df
 
@@ -308,5 +231,50 @@ def gasoline_sales_resale(api_key=API_KEY):
     return df
 
 
+def mbbl_production(api_key=API_KEY, daily=False):
+    """
+    crude oil production in the USA for PADD regions (1-5) in MBBL or MBBL/D
+    :param
+    api_key: str, api key from EIA.gov
+    daily: bool, if True, return daily production, else return monthly production
+    :return
+    pandas dataframe
+    """
+
+    url = f"https://api.eia.gov/v2/petroleum/crd/crpdn/data/?api_key={api_key}&\
+    frequency=monthly&data[0]=value&facets[duoarea][]=R10&facets[duoarea][]=R20&\
+    facets[duoarea][]=R30&facets[duoarea][]=R40&facets[duoarea][]=R50&sort[0][column]=period&\
+    sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    if daily:
+        df = df[df['units'] == 'MBBL/D']
+    else:
+        df = df[df['units'] == 'MBBL']
+    df = df.groupby('period').sum()['value']
+    df.rename('production', inplace=True)
+
+    return df
 
 
+def energy_consumption(api_key=API_KEY, end=None):
+    """
+    monthly energy consumption in the USA in quadrillion BTU
+    :param
+    api_key: str, api key from EIA.gov
+    end: str, end date of data, format YYYY-MM, default is today
+    :return:
+    pandas dataframe
+    """
+    if end is None:
+        end = pd.Timestamp.today().strftime('%Y-%m')
+
+    url = f"https://api.eia.gov/v2/steo/data/?api_key={api_key}&\
+    frequency=monthly&data[0]=value&facets[seriesId][]=TETCFUEL&\
+    end={today}&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    df = df['value']
+    df = df.rename('energy_consumption')
+
+    return df
