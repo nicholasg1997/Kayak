@@ -137,6 +137,16 @@ def weekly_stocks(api_key=API_KEY):
 
 
 def weekly_product_supplied(api_key=API_KEY):
+    """
+    USA Weekly product supplied in MBBL/D
+    includes residual fuel oils, propane and propylene, other oils, kerosene-type jet fuel,
+    distillate fuel oil, finished motor gasoline
+    :param
+    api_key: str, api key from EIA.gov
+    :return:
+    pandas dataframe
+    """
+
     url = f"https://api.eia.gov/v2/petroleum/cons/wpsup/data/?api_key={api_key}&\
     frequency=weekly&data[0]=value&sort[0][column]=period&\
     sort[0][direction]=desc&offset=0&length=5000"
@@ -147,6 +157,14 @@ def weekly_product_supplied(api_key=API_KEY):
 
 
 def spr_reserves(api_key=API_KEY):
+    """
+    Weekly SPR reserves in MBBL
+    :param
+    api_key: str, api key from EIA.gov
+    :return:
+    pandas dataframe
+    """
+
     url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
     frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[series][]=WCSSTUS1&\
     sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
@@ -156,10 +174,21 @@ def spr_reserves(api_key=API_KEY):
     return df
 
 
-def ending_stocks(api_key=API_KEY):
-    url = f"https://api.eia.gov/v2/petroleum/stoc/typ/data/?api_key={api_key}&\
-    frequency=monthly&data[0]=value&facets[product][]=EPC0&facets[process][]=SAE&\
-    facets[series][]=MCRSTUS1&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+def ending_stocks(api_key=API_KEY, just_crude=True):
+    """ weekly ending stocks of crude oil or crude oil and petroleum products in MBBL
+    :param
+    api_key: str, api key from EIA.gov
+    just_crude: bool, if True, only crude oil stocks are returned
+    :return:
+    pandas dataframe"""
+    if just_crude:
+        product = "EPC0"
+    else:
+        product = "EP00"
+
+    url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
+    frequency=weekly&data[0]=value&facets[product][]={product}&facets[process][]=SAE&\
+    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
 
     df = get_request(url, group=True, name='ending_stocks')
 
@@ -249,6 +278,3 @@ def mbbl_production(api_key=API_KEY, daily=False):
 url = "https://api.eia.gov/v2/total-energy/data/?frequency=monthly&\
 data[0]=value&facets[msn][]=COSQPUS&facets[msn][]=DFACPUS&facets[msn][]=DFCCPUS&facets[msn][]=DFICPUS&\
 facets[msn][]=DFRCPUS&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
-
-data = proved_nonprod_reserves()
-print(data)
