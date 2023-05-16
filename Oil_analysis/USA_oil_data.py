@@ -35,7 +35,7 @@ def get_request(url, group=False, name='value'):
 
     return df
 
-
+#SUPPLY
 def crude_oil_stocks(frequency="monthly", api_key=API_KEY, cushing=False):
     """
     Get the data from EIA.gov on crude oil stocks by month or year
@@ -68,7 +68,7 @@ def crude_oil_stocks(frequency="monthly", api_key=API_KEY, cushing=False):
 
     return storage_data
 
-
+# DEMAND
 def imports_exports(api_key=API_KEY, only_crude=True):
     """
     Get the data from EIA.gov on crude oil imports and exports
@@ -278,5 +278,3 @@ def energy_consumption(api_key=API_KEY, end=None):
     df = df.rename('energy_consumption')
 
     return df
-
-
