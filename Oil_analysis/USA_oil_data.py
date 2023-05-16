@@ -35,7 +35,8 @@ def get_request(url, group=False, name='value'):
 
     return df
 
-#SUPPLY
+
+# SUPPLY
 def crude_oil_stocks(frequency="monthly", api_key=API_KEY, cushing=False):
     """
     Get the data from EIA.gov on crude oil stocks by month or year
@@ -67,32 +68,6 @@ def crude_oil_stocks(frequency="monthly", api_key=API_KEY, cushing=False):
     storage_data = storage_data.sort_index(ascending=False)
 
     return storage_data
-
-# DEMAND
-def imports_exports(api_key=API_KEY, only_crude=True):
-    """
-    Get the data from EIA.gov on crude oil imports and exports
-    returns weekly imports and exports in MBBL/D
-    :param
-    API_KEY: str, API key from EIA.gov
-    :return
-    pandas dataframe
-    """
-    if only_crude:
-        url = f"https://api.eia.gov/v2/petroleum/move/wkly/data/?api_key={api_key}&\
-            frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[series][]=WCREXUS2&facets[series][]=WCRIMUS2&\
-            sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
-    else:
-        url = f"https://api.eia.gov/v2/petroleum/move/wkly/data/?api_key={api_key}&\
-        frequency=weekly&data[0]=value&facets[product][]=EP00&facets[series][]=WTTEXUS2&\
-        facets[series][]=WTTIMUS2&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
-
-    df = get_request(url)
-
-    exports = df[df['process-name'].str.contains('exports', case=False)]['value'].rename('exports')
-    imports = df[df['process-name'].str.contains('imports', case=False)]['value'].rename('imports')
-
-    return imports, exports
 
 
 def proved_nonprod_reserves(api_key=API_KEY):
@@ -137,26 +112,6 @@ def weekly_stocks(api_key=API_KEY):
     return df['stocks']
 
 
-def weekly_product_supplied(api_key=API_KEY):
-    """
-    USA Weekly product supplied in MBBL/D
-    includes residual fuel oils, propane and propylene, other oils, kerosene-type jet fuel,
-    distillate fuel oil, finished motor gasoline
-    :param
-    api_key: str, api key from EIA.gov
-    :return:
-    pandas dataframe
-    """
-
-    url = f"https://api.eia.gov/v2/petroleum/cons/wpsup/data/?api_key={api_key}&\
-    frequency=weekly&data[0]=value&sort[0][column]=period&\
-    sort[0][direction]=desc&offset=0&length=5000"
-
-    df = get_request(url, group=True, name='weekly_product_supplied')
-
-    return df
-
-
 def spr_reserves(api_key=API_KEY):
     """
     Weekly SPR reserves in MBBL
@@ -196,6 +151,79 @@ def ending_stocks(api_key=API_KEY, just_crude=True):
     return df
 
 
+def mbbl_production(api_key=API_KEY, daily=False):
+    """
+    crude oil production in the USA for PADD regions (1-5) in MBBL or MBBL/D
+    :param
+    api_key: str, api key from EIA.gov
+    daily: bool, if True, return daily production, else return monthly production
+    :return
+    pandas dataframe
+    """
+
+    url = f"https://api.eia.gov/v2/petroleum/crd/crpdn/data/?api_key={api_key}&\
+    frequency=monthly&data[0]=value&facets[duoarea][]=R10&facets[duoarea][]=R20&\
+    facets[duoarea][]=R30&facets[duoarea][]=R40&facets[duoarea][]=R50&sort[0][column]=period&\
+    sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    if daily:
+        df = df[df['units'] == 'MBBL/D']
+    else:
+        df = df[df['units'] == 'MBBL']
+    df = df.groupby('period').sum()['value']
+    df.rename('production', inplace=True)
+
+    return df
+
+
+# DEMAND
+def imports_exports(api_key=API_KEY, only_crude=True):
+    """
+    Get the data from EIA.gov on crude oil imports and exports
+    returns weekly imports and exports in MBBL/D
+    :param
+    API_KEY: str, API key from EIA.gov
+    :return
+    pandas dataframe
+    """
+    if only_crude:
+        url = f"https://api.eia.gov/v2/petroleum/move/wkly/data/?api_key={api_key}&\
+            frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[series][]=WCREXUS2&facets[series][]=WCRIMUS2&\
+            sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+    else:
+        url = f"https://api.eia.gov/v2/petroleum/move/wkly/data/?api_key={api_key}&\
+        frequency=weekly&data[0]=value&facets[product][]=EP00&facets[series][]=WTTEXUS2&\
+        facets[series][]=WTTIMUS2&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url)
+
+    exports = df[df['process-name'].str.contains('exports', case=False)]['value'].rename('exports')
+    imports = df[df['process-name'].str.contains('imports', case=False)]['value'].rename('imports')
+
+    return imports, exports
+
+
+def weekly_product_supplied(api_key=API_KEY):
+    """
+    USA Weekly product supplied in MBBL/D
+    includes residual fuel oils, propane and propylene, other oils, kerosene-type jet fuel,
+    distillate fuel oil, finished motor gasoline
+    :param
+    api_key: str, api key from EIA.gov
+    :return:
+    pandas dataframe
+    """
+
+    url = f"https://api.eia.gov/v2/petroleum/cons/wpsup/data/?api_key={api_key}&\
+    frequency=weekly&data[0]=value&sort[0][column]=period&\
+    sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url, group=True, name='weekly_product_supplied')
+
+    return df
+
+
 def gasoline_sales_end_user(api_key=API_KEY):
     """
     gasoline sales per month to end users in MGAL/D (total gasoline sales)
@@ -227,32 +255,6 @@ def gasoline_sales_resale(api_key=API_KEY):
     sort[0][direction]=desc&offset=0&length=5000"
 
     df = get_request(url, group=True, name='gasoline_sales_resale')
-
-    return df
-
-
-def mbbl_production(api_key=API_KEY, daily=False):
-    """
-    crude oil production in the USA for PADD regions (1-5) in MBBL or MBBL/D
-    :param
-    api_key: str, api key from EIA.gov
-    daily: bool, if True, return daily production, else return monthly production
-    :return
-    pandas dataframe
-    """
-
-    url = f"https://api.eia.gov/v2/petroleum/crd/crpdn/data/?api_key={api_key}&\
-    frequency=monthly&data[0]=value&facets[duoarea][]=R10&facets[duoarea][]=R20&\
-    facets[duoarea][]=R30&facets[duoarea][]=R40&facets[duoarea][]=R50&sort[0][column]=period&\
-    sort[0][direction]=desc&offset=0&length=5000"
-
-    df = get_request(url, group=False)
-    if daily:
-        df = df[df['units'] == 'MBBL/D']
-    else:
-        df = df[df['units'] == 'MBBL']
-    df = df.groupby('period').sum()['value']
-    df.rename('production', inplace=True)
 
     return df
 
