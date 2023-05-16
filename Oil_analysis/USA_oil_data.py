@@ -18,6 +18,7 @@ today = pd.Timestamp.today().strftime("%Y-%m")
 def get_request(url, group=False, name='value'):
     """
     Returns a pandas dataframe from an API request to EIA.gov
+    :param name: data column name
     :param url: str, URL for API request
     :param group: bool, if True, group by period
     :return: pandas dataframe
@@ -195,26 +196,6 @@ def ending_stocks(api_key=API_KEY, just_crude=True):
     return df
 
 
-def product_supplied(api_key=API_KEY):
-    """
-    total crude oil and petroleum product supplied by month in MBBL
-    :param api_key: str, api key from EIA.gov
-    :return:
-    pandas dataframe
-    """
-
-    url = f"https://api.eia.gov/v2/petroleum/cons/psup/data/?api_key={api_key}&\
-    frequency=monthly&data[0]=value&facets[duoarea][]=NUS&facets[product][]=EP00&\
-    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
-
-    df = get_request(url)
-    df = df[df['units'] == 'MBBL']
-    df = df.groupby('period').sum()['value']
-    df.rename('product_supplied', inplace=True)
-
-    return df
-
-
 def gasoline_sales_end_user(api_key=API_KEY):
     """
     gasoline sales per month to end users in MGAL/D (total gasoline sales)
@@ -226,6 +207,8 @@ def gasoline_sales_end_user(api_key=API_KEY):
     sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
 
     df = get_request(url, group=False)
+    df = df['value']
+    df = df.rename('gasoline_sales_end_user')
 
     return df
 
@@ -273,8 +256,27 @@ def mbbl_production(api_key=API_KEY, daily=False):
 
     return df
 
-# TODO: get data from the following url on consumption
 
-url = "https://api.eia.gov/v2/total-energy/data/?frequency=monthly&\
-data[0]=value&facets[msn][]=COSQPUS&facets[msn][]=DFACPUS&facets[msn][]=DFCCPUS&facets[msn][]=DFICPUS&\
-facets[msn][]=DFRCPUS&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+def energy_consumption(api_key=API_KEY, end=None):
+    """
+    monthly energy consumption in the USA in quadrillion BTU
+    :param
+    api_key: str, api key from EIA.gov
+    end: str, end date of data, format YYYY-MM, default is today
+    :return:
+    pandas dataframe
+    """
+    if end is None:
+        end = pd.Timestamp.today().strftime('%Y-%m')
+
+    url = f"https://api.eia.gov/v2/steo/data/?api_key={api_key}&\
+    frequency=monthly&data[0]=value&facets[seriesId][]=TETCFUEL&\
+    end={today}&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    df = df['value']
+    df = df.rename('energy_consumption')
+
+    return df
+
+
