@@ -35,47 +35,6 @@ def get_request(url, group=False, name='value'):
     return df
 
 
-def mbbl_production(frequency="monthly", api_key=API_KEY, end_date=today, years=5):
-    """
-    Get the data from EIA.gov on crude oil production my month or year
-    returns monthly MBBL data
-    :param 
-    frequency: str, "monthly" or "annual"
-    API_KEY: str, API key from EIA.gov
-    start_date: str, "YYYY-MM"
-    years: int, number of years to retrieve data (must be divisible by 5)
-    :return 
-    pandas dataframe
-    """
-    assert years % 5 == 0, "years must be divisible by 5"
-
-    # 1000 for every year, increment in 5000
-    offset = 0
-    master_df = pd.DataFrame()
-
-    while years > 0:
-        url = f"https://api.eia.gov/v2/petroleum/crd/crpdn/data/?api_key={api_key}&\
-        frequency={frequency}&end={end_date}&data[0]=value&sort[0][column]=period&\
-        sort[0][direction]=desc&offset={offset}&length=5000"
-
-        df = get_request(url)
-
-        df = df[df['units'] == 'MBBL']
-        df = df.groupby('period').sum()['value']
-        df.rename('production', inplace=True)
-
-        offset += 5000
-        years -= 5
-
-        master_df = pd.concat([master_df, df]).drop_duplicates()
-
-    master_df = master_df.rename(columns={0: 'production'})
-    master_df.index.name = 'period'
-    master_df = master_df.groupby(master_df.index).sum()
-
-    return master_df
-
-
 def crude_oil_stocks(frequency="monthly", api_key=API_KEY, cushing=False):
     """
     Get the data from EIA.gov on crude oil stocks by month or year
@@ -209,7 +168,6 @@ def weekly_stocks(api_key=API_KEY):
     """
     Weekly stocks of crude oil and petroleum products in MBBL
 
-    :param years: int, number of years to get data for
     :param api_key: str, api key from EIA.gov
     :return:
     pandas dataframe
@@ -307,6 +265,31 @@ def gasoline_sales_resale(api_key=API_KEY):
 
     return df
 
+
+def mbbl_production(api_key=API_KEY, daily=False):
+    """
+    crude oil production in the USA for PADD regions (1-5) in MBBL or MBBL/D
+    :param
+    api_key: str, api key from EIA.gov
+    daily: bool, if True, return daily production, else return monthly production
+    :return
+    pandas dataframe
+    """
+
+    url = f"https://api.eia.gov/v2/petroleum/crd/crpdn/data/?api_key={api_key}&\
+    frequency=monthly&data[0]=value&facets[duoarea][]=R10&facets[duoarea][]=R20&\
+    facets[duoarea][]=R30&facets[duoarea][]=R40&facets[duoarea][]=R50&sort[0][column]=period&\
+    sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url, group=False, name='testing')
+    if daily:
+        df = df[df['units'] == 'MBBL/D']
+    else:
+        df = df[df['units'] == 'MBBL']
+    df = df.groupby('period').sum()['value']
+    df.rename('testing', inplace=True)
+
+    return df
 
 # TODO: get data from the following url on consumption
 
