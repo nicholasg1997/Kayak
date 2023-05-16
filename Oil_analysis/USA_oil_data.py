@@ -43,7 +43,8 @@ def crude_oil_stocks(frequency="monthly", api_key=API_KEY, cushing=False):
     :param 
     frequency: str, "monthly" or "annual"
     API_KEY: str, API key from EIA.gov
-    cushings: bool, if True, returns Cushing, OK Ending Stocks of Crude Oil (Thousand Barrels), if False, exclude it
+    cushing: bool, if True, returns Cushing, OK Ending Stocks of Crude Oil (Thousand Barrels), if False, return stocks
+     at tank farms and pipelines for all 5 PADDs
     :return 
     pandas dataframe
     """
@@ -67,7 +68,7 @@ def crude_oil_stocks(frequency="monthly", api_key=API_KEY, cushing=False):
     return storage_data
 
 
-def imports_exports(api_key=API_KEY):
+def imports_exports(api_key=API_KEY, only_crude=True):
     """
     Get the data from EIA.gov on crude oil imports and exports
     returns weekly imports and exports in MBBL/D
@@ -76,10 +77,14 @@ def imports_exports(api_key=API_KEY):
     :return
     pandas dataframe
     """
-
-    url = f"https://api.eia.gov/v2/petroleum/move/wkly/data/?api_key={api_key}&\
-    frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[series][]=WCREXUS2&facets[series][]=WCRIMUS2&\
-    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+    if only_crude:
+        url = f"https://api.eia.gov/v2/petroleum/move/wkly/data/?api_key={api_key}&\
+            frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[series][]=WCREXUS2&facets[series][]=WCRIMUS2&\
+            sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+    else:
+        url = f"https://api.eia.gov/v2/petroleum/move/wkly/data/?api_key={api_key}&\
+        frequency=weekly&data[0]=value&facets[product][]=EP00&facets[series][]=WTTEXUS2&\
+        facets[series][]=WTTIMUS2&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
 
     df = get_request(url)
 
@@ -281,13 +286,13 @@ def mbbl_production(api_key=API_KEY, daily=False):
     facets[duoarea][]=R30&facets[duoarea][]=R40&facets[duoarea][]=R50&sort[0][column]=period&\
     sort[0][direction]=desc&offset=0&length=5000"
 
-    df = get_request(url, group=False, name='testing')
+    df = get_request(url, group=False)
     if daily:
         df = df[df['units'] == 'MBBL/D']
     else:
         df = df[df['units'] == 'MBBL']
     df = df.groupby('period').sum()['value']
-    df.rename('testing', inplace=True)
+    df.rename('production', inplace=True)
 
     return df
 
