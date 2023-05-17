@@ -178,7 +178,6 @@ def mbbl_production(api_key=API_KEY, daily=False):
 
 
 def imports(api_key=API_KEY, daily=False):
-
     url = f"https://api.eia.gov/v2/petroleum/move/imp/data/?api_key={api_key}&\
     frequency=monthly&data[0]=value&facets[product][]=EPC0&facets[series][]=MCRIMUS1&\
     facets[series][]=MCRIMUS2&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
@@ -319,7 +318,6 @@ def refinery_net_input(api_key=API_KEY, daily=False):
 
 
 def exports(api_key=API_KEY, daily=False):
-
     url = f"https://api.eia.gov/v2/petroleum/move/exp/data/?api_key={api_key}&\
     frequency=monthly&data[0]=value&facets[product][]=EPC0&facets[duoarea][]=NUS-Z00&\
     sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
@@ -331,3 +329,28 @@ def exports(api_key=API_KEY, daily=False):
         df = df[df['units'] == 'MBBL']
     df = df['value'].rename('exports')
     return df
+
+
+# forecasts (provided by short term energy outlook on EIA.gov)
+def crude_production_forecast(api_key=API_KEY, start='2000-01', end=None):
+    """get STEO forecast for crude oil production in the USA in MBBL/D
+    :param
+    api_key: str, api key from EIA.gov
+    start: str, start date of data, format YYYY-MM, default is 2000-01
+    end: str, end date of data, format YYYY-MM, default is today
+    :return:
+    pandas dataframe
+    """
+
+    if end is None:
+        end = pd.Timestamp.today().strftime('%Y-%m')
+
+    url = f"https://api.eia.gov/v2/steo/data/?api_key={api_key}&\
+    frequency=monthly&data[0]=value&facets[seriesId][]=COPRPUS&start={start}&\
+    end={end}&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    df = df['value']
+    df = df.rename('crude_production_forecast')
+    return df
+
