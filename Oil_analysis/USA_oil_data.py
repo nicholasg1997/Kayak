@@ -177,6 +177,21 @@ def mbbl_production(api_key=API_KEY, daily=False):
     return df
 
 
+def imports(api_key=API_KEY, daily=False):
+
+    url = f"https://api.eia.gov/v2/petroleum/move/imp/data/?api_key={api_key}&\
+    frequency=monthly&data[0]=value&facets[product][]=EPC0&facets[series][]=MCRIMUS1&\
+    facets[series][]=MCRIMUS2&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    if daily:
+        df = df[df['units'] == 'MBBL/D']
+    else:
+        df = df[df['units'] == 'MBBL']
+    df = df['value'].rename('imports')
+    return df
+
+
 # DEMAND
 def imports_exports(api_key=API_KEY, only_crude=True):
     """
@@ -279,4 +294,40 @@ def energy_consumption(api_key=API_KEY, end=None):
     df = df['value']
     df = df.rename('energy_consumption')
 
+    return df
+
+
+def refinery_net_input(api_key=API_KEY, daily=False):
+    """monthly net inouts of crude oil to refineries in MBBL/D or MBBL
+    :param
+    api_key: str, api key from EIA.gov
+    daily: bool, if True, returns monthly data in MBBL/D, if False, returns monthly data in MBBL
+    :return:
+    pandas dataframe"""
+
+    url = f"https://api.eia.gov/v2/petroleum/pnp/inpt2/data/?api_key={api_key}&\
+    frequency=monthly&data[0]=value&facets[product][]=EPC0&facets[duoarea][]=NUS&\
+    facets[process][]=YIY&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    if daily:
+        df = df[df['units'] == 'MBBL/D']
+    else:
+        df = df[df['units'] == 'MBBL']
+    df = df['value'].rename('refinery_net_input')
+    return df
+
+
+def exports(api_key=API_KEY, daily=False):
+
+    url = f"https://api.eia.gov/v2/petroleum/move/exp/data/?api_key={api_key}&\
+    frequency=monthly&data[0]=value&facets[product][]=EPC0&facets[duoarea][]=NUS-Z00&\
+    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    if daily:
+        df = df[df['units'] == 'MBBL/D']
+    else:
+        df = df[df['units'] == 'MBBL']
+    df = df['value'].rename('exports')
     return df
