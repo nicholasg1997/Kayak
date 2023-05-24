@@ -37,6 +37,7 @@ def get_request(url, group=False, name='value'):
 
 
 # SUPPLY
+# --------------------------------------------------------------------------------
 def crude_oil_stocks(frequency="monthly", api_key=API_KEY, cushing=False):
     """
     Get the data from EIA.gov on crude oil stocks by month or year
@@ -192,6 +193,8 @@ def imports(api_key=API_KEY, daily=False):
 
 
 # DEMAND
+# --------------------------------------------------------------------------------
+
 def imports_exports(api_key=API_KEY, only_crude=True):
     """
     Get the data from EIA.gov on crude oil imports and exports
@@ -354,3 +357,19 @@ def crude_production_forecast(api_key=API_KEY, start='2000-01', end=None):
     df = df.rename('crude_production_forecast')
     return df
 
+
+def world_prod_cons(api_key=API_KEY, start='2000-01', end=None):
+    if end is None:
+        end = pd.Timestamp.today().strftime('%Y-%m')
+
+    url = f"https://api.eia.gov/v2/steo/data/?api_key={api_key}&\
+    frequency=monthly&data[0]=value&facets[seriesId][]=PAPR_WORLD&\
+    facets[seriesId][]=PATC_WORLD&start={start}&end={end}&sort[0][column]=period&\
+    sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url, group=False)
+
+    production = df[df['seriesId'] == 'PAPR_WORLD']['value']
+    consumption = df[df['seriesId'] == 'PATC_WORLD']['value']
+
+    return production, consumption
