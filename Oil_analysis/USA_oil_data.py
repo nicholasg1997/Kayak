@@ -195,6 +195,24 @@ def imports(api_key=API_KEY, daily=False):
 # DEMAND
 # --------------------------------------------------------------------------------
 
+def monthly_product_supplied(api_key=API_KEY):
+    """"U.S. Product Supplied of Crude Oil and Petroleum Products (Thousand Barrels per Day)
+    :param
+    api_key: str, api key from EIA.gov
+    :return
+    pandas dataframe
+    """
+
+    url = f"https://api.eia.gov/v2/petroleum/cons/psup/data/?api_key={api_key}&\
+    frequency=monthly&data[0]=value&facets[duoarea][]=NUS&facets[product][]=EP00&\
+    facets[product][]=EPC0&facets[series][]=MTTUPUS2&sort[0][column]=period&\
+    sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    df = df['value'].rename('product_supplied')
+    return df
+
+
 def imports_exports(api_key=API_KEY, only_crude=True):
     """
     Get the data from EIA.gov on crude oil imports and exports
