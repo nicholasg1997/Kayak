@@ -94,7 +94,7 @@ def proved_nonprod_reserves(api_key=API_KEY):
     return df
 
 
-def weekly_stocks(api_key=API_KEY):
+def weekly_stocks(api_key=API_KEY, crude_only=True):
     """
     Weekly stocks of crude oil and petroleum products in MBBL
 
@@ -102,10 +102,15 @@ def weekly_stocks(api_key=API_KEY):
     :return:
     pandas dataframe
     """
+    if crude_only:
+        product = 'EPC0'
+    else:
+        product = 'EP00'
 
     url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
-    frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[series][]=WCRSTUS1&\
-    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+    frequency=weekly&data[0]=value&facets[duoarea][]=NUS&facets[product][]={product}&\
+    facets[process][]=SAE&sort[0][column]=period&sort[0][direction]=desc&\
+    offset=0&length=5000"
 
     df = get_request(url)
     df.rename(columns={'value': 'stocks'}, inplace=True)
@@ -194,6 +199,40 @@ def imports(api_key=API_KEY, daily=False):
 
 # DEMAND
 # --------------------------------------------------------------------------------
+
+def weekly_refinery_inputs(api_key=API_KEY):
+    """"Refiner Net Input of Crude Oil (Thousand Barrels per Day) for PADDS 1-5
+    :param
+    api_key: str, api key from EIA.gov
+    :return
+    pandas dataframe
+    """
+
+    url = f"https://api.eia.gov/v2/petroleum/pnp/wiup/data/?api_key={api_key}&\
+    frequency=weekly&data[0]=value&facets[product][]=EPC0&sort[0][column]=period&\
+    sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url, group=True, name='weekly_refinery_inputs')
+    return df
+
+
+def monthly_product_supplied(api_key=API_KEY):
+    """"U.S. Product Supplied of Crude Oil and Petroleum Products (Thousand Barrels per Day)
+    :param
+    api_key: str, api key from EIA.gov
+    :return
+    pandas dataframe
+    """
+
+    url = f"https://api.eia.gov/v2/petroleum/cons/psup/data/?api_key={api_key}&\
+    frequency=monthly&data[0]=value&facets[duoarea][]=NUS&facets[product][]=EP00&\
+    facets[product][]=EPC0&facets[series][]=MTTUPUS2&sort[0][column]=period&\
+    sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    df = df['value'].rename('product_supplied')
+    return df
+
 
 def imports_exports(api_key=API_KEY, only_crude=True):
     """
@@ -373,3 +412,15 @@ def world_prod_cons(api_key=API_KEY, start='2000-01', end=None):
     consumption = df[df['seriesId'] == 'PATC_WORLD']['value']
 
     return production, consumption
+
+
+def weekly_field_production(api_key=API_KEY):
+
+    url = f"https://api.eia.gov/v2/petroleum/sum/sndw/data/?api_key={api_key}&\
+    frequency=weekly&data[0]=value&facets[product][]=EP00&facets[product][]=EPC0&\
+    facets[duoarea][]=NUS&facets[duoarea][]=NUS-Z00&facets[series][]=WCRFPUS2&\
+    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    df = df['value'].rename('weekly_field_production')
+    return df
