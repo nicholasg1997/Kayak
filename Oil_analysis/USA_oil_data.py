@@ -94,7 +94,7 @@ def proved_nonprod_reserves(api_key=API_KEY):
     return df
 
 
-def weekly_stocks(api_key=API_KEY):
+def weekly_stocks(api_key=API_KEY, crude_only=True):
     """
     Weekly stocks of crude oil and petroleum products in MBBL
 
@@ -102,10 +102,14 @@ def weekly_stocks(api_key=API_KEY):
     :return:
     pandas dataframe
     """
+    if crude_only:
+        product = 'EPC0'
+    else:
+        product = 'EP00'
 
     url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
-    frequency=weekly&data[0]=value&facets[duoarea][]=NUS&facets[product][]=EP00&\
-    facets[series][]=WTTSTUS1&sort[0][column]=period&sort[0][direction]=desc&\
+    frequency=weekly&data[0]=value&facets[duoarea][]=NUS&facets[product][]={product}&\
+    facets[process][]=SAE&sort[0][column]=period&sort[0][direction]=desc&\
     offset=0&length=5000"
 
     df = get_request(url)
@@ -208,7 +212,7 @@ def weekly_refinery_inputs(api_key=API_KEY):
     frequency=weekly&data[0]=value&facets[product][]=EPC0&sort[0][column]=period&\
     sort[0][direction]=desc&offset=0&length=5000"
 
-    df = get_request(url, group=True, name='weekly_inputs')
+    df = get_request(url, group=True, name='weekly_refinery_inputs')
     return df
 
 
@@ -408,3 +412,15 @@ def world_prod_cons(api_key=API_KEY, start='2000-01', end=None):
     consumption = df[df['seriesId'] == 'PATC_WORLD']['value']
 
     return production, consumption
+
+
+def weekly_field_production(api_key=API_KEY):
+
+    url = f"https://api.eia.gov/v2/petroleum/sum/sndw/data/?api_key={api_key}&\
+    frequency=weekly&data[0]=value&facets[product][]=EP00&facets[product][]=EPC0&\
+    facets[duoarea][]=NUS&facets[duoarea][]=NUS-Z00&facets[series][]=WCRFPUS2&\
+    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    df = df['value'].rename('weekly_field_production')
+    return df
