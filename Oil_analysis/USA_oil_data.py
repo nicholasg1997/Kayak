@@ -21,6 +21,7 @@ def get_request(url, group=False, name='value'):
     :param name: data column name
     :param url: str, URL for API request
     :param group: bool, if True, group by period
+
     :return: pandas dataframe
     """
     response = requests.get(url)
@@ -43,13 +44,12 @@ def crude_oil_stocks(frequency="monthly", api_key=API_KEY, cushing=False):
     Get the data from EIA.gov on crude oil stocks by month or year
     returns monthly stocks in MBBL
     crude oil stocks at tank farms and pipelines
-    :param 
-    frequency: str, "monthly" or "annual"
-    API_KEY: str, API key from EIA.gov
-    cushing: bool, if True, returns Cushing, OK Ending Stocks of Crude Oil (Thousand Barrels), if False, return stocks
+    :param frequency: str, "monthly" or "annual"
+    :param api_key: str, API key from EIA.gov
+    :param cushing: bool, if True, returns Cushing, OK Ending Stocks of Crude Oil (Thousand Barrels), if False, return stocks
      at tank farms and pipelines for all 5 PADDs
-    :return 
-    pandas dataframe
+
+    :return: pandas dataframe
     """
 
     url = f"https://api.eia.gov/v2/petroleum/stoc/cu/data/?api_key={api_key}&\
@@ -75,10 +75,9 @@ def proved_nonprod_reserves(api_key=API_KEY):
     """
     proved non producing reserves in MMBBL
     annual data only
-    :param
-    api_key: str, api key from EIA.gov
-    :return
-    pandas dataframe
+    :param api_key: str, api key from EIA.gov
+
+    :return: pandas dataframe
     """
     url = f"https://api.eia.gov/v2/petroleum/crd/nprod/data/?api_key={api_key}&\
     frequency=annual&data[0]=value&facets[product][]=EPC0&facets[duoarea][]=NUS&\
@@ -94,13 +93,13 @@ def proved_nonprod_reserves(api_key=API_KEY):
     return df
 
 
-def weekly_stocks(api_key=API_KEY, crude_only=True):
+def weekly_stocks_SPR(api_key=API_KEY, crude_only=True):
     """
-    Weekly stocks of crude oil and petroleum products in MBBL
-
+    Weekly stocks of crude oil and petroleum products in MBBL incluuding SPR
     :param api_key: str, api key from EIA.gov
-    :return:
-    pandas dataframe
+    :param crude_only: bool, if True, only crude oil stocks are returned
+
+    :return: pandas dataframe
     """
     if crude_only:
         product = 'EPC0'
@@ -108,9 +107,19 @@ def weekly_stocks(api_key=API_KEY, crude_only=True):
         product = 'EP00'
 
     url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
-    frequency=weekly&data[0]=value&facets[duoarea][]=NUS&facets[product][]={product}&\
-    facets[process][]=SAE&sort[0][column]=period&sort[0][direction]=desc&\
-    offset=0&length=5000"
+    frequency=weekly&data[0]=value&facets[product][]={product}&facets[process][]=SAE&\
+    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url)
+    df.rename(columns={'value': 'stocks'}, inplace=True)
+
+    return df['stocks']
+
+
+def weekly_stocks(api_key=API_KEY):
+    url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
+    frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[process][]=SAX&\
+    facets[duoarea][]=NUS&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
 
     df = get_request(url)
     df.rename(columns={'value': 'stocks'}, inplace=True)
@@ -121,10 +130,9 @@ def weekly_stocks(api_key=API_KEY, crude_only=True):
 def spr_reserves(api_key=API_KEY):
     """
     Weekly SPR reserves in MBBL
-    :param
-    api_key: str, api key from EIA.gov
-    :return:
-    pandas dataframe
+    :param api_key: str, api key from EIA.gov
+
+    :return: pandas dataframe
     """
 
     url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
@@ -137,12 +145,13 @@ def spr_reserves(api_key=API_KEY):
 
 
 def ending_stocks(api_key=API_KEY, just_crude=True):
-    """ weekly ending stocks of crude oil or crude oil and petroleum products in MBBL
-    :param
-    api_key: str, api key from EIA.gov
-    just_crude: bool, if True, only crude oil stocks are returned
-    :return:
-    pandas dataframe"""
+    """
+    weekly ending stocks of crude oil or crude oil and petroleum products in MBBL
+    :param api_key: str, api key from EIA.gov
+    :param just_crude: bool, if True, only crude oil stocks are returned
+
+    :return:pandas dataframe
+    """
     if just_crude:
         product = "EPC0"
     else:
@@ -160,11 +169,10 @@ def ending_stocks(api_key=API_KEY, just_crude=True):
 def mbbl_production(api_key=API_KEY, daily=False):
     """
     crude oil production in the USA for PADD regions (1-5) in MBBL or MBBL/D
-    :param
-    api_key: str, api key from EIA.gov
-    daily: bool, if True, return daily production, else return monthly production
-    :return
-    pandas dataframe
+    :param api_key: str, api key from EIA.gov
+    :param daily: bool, if True, return daily production, else return monthly production
+
+    :return: pandas dataframe
     """
 
     url = f"https://api.eia.gov/v2/petroleum/crd/crpdn/data/?api_key={api_key}&\
@@ -201,11 +209,11 @@ def imports(api_key=API_KEY, daily=False):
 # --------------------------------------------------------------------------------
 
 def weekly_refinery_inputs(api_key=API_KEY):
-    """"Refiner Net Input of Crude Oil (Thousand Barrels per Day) for PADDS 1-5
-    :param
-    api_key: str, api key from EIA.gov
-    :return
-    pandas dataframe
+    """"
+    Refiner Net Input of Crude Oil (Thousand Barrels per Day) for PADDS 1-5
+    :param api_key: str, api key from EIA.gov
+
+    :return: pandas dataframe
     """
 
     url = f"https://api.eia.gov/v2/petroleum/pnp/wiup/data/?api_key={api_key}&\
@@ -217,11 +225,11 @@ def weekly_refinery_inputs(api_key=API_KEY):
 
 
 def monthly_product_supplied(api_key=API_KEY):
-    """"U.S. Product Supplied of Crude Oil and Petroleum Products (Thousand Barrels per Day)
-    :param
-    api_key: str, api key from EIA.gov
-    :return
-    pandas dataframe
+    """
+    U.S. Product Supplied of Crude Oil and Petroleum Products (Thousand Barrels per Day)
+    :param api_key: str, api key from EIA.gov
+
+    :return: pandas dataframe
     """
 
     url = f"https://api.eia.gov/v2/petroleum/cons/psup/data/?api_key={api_key}&\
@@ -238,10 +246,9 @@ def imports_exports(api_key=API_KEY, only_crude=True):
     """
     Get the data from EIA.gov on crude oil imports and exports
     returns weekly imports and exports in MBBL/D
-    :param
-    API_KEY: str, API key from EIA.gov
-    :return
-    pandas dataframe
+    :param api_key: str, API key from EIA.gov
+
+    :return: pandas dataframe
     """
     if only_crude:
         url = f"https://api.eia.gov/v2/petroleum/move/wkly/data/?api_key={api_key}&\
@@ -265,10 +272,9 @@ def weekly_product_supplied(api_key=API_KEY):
     USA Weekly product supplied in MBBL/D
     includes residual fuel oils, propane and propylene, other oils, kerosene-type jet fuel,
     distillate fuel oil, finished motor gasoline
-    :param
-    api_key: str, api key from EIA.gov
-    :return:
-    pandas dataframe
+    :param api_key: str, api key from EIA.gov
+
+    :return: pandas dataframe
     """
 
     url = f"https://api.eia.gov/v2/petroleum/cons/wpsup/data/?api_key={api_key}&\
@@ -283,8 +289,9 @@ def weekly_product_supplied(api_key=API_KEY):
 def gasoline_sales_end_user(api_key=API_KEY):
     """
     gasoline sales per month to end users in MGAL/D (total gasoline sales)
-    :param api_key:
-    :return:
+    :param api_key: str, api key from EIA.gov
+
+    :return: pandas dataframe
     """
     url = f"https://api.eia.gov/v2/petroleum/cons/refmg/data/?api_key={api_key}&\
     frequency=monthly&data[0]=value&facets[process][]=VTR&facets[duoarea][]=NUS&facets[product][]=EPM0&\
@@ -301,8 +308,9 @@ def gasoline_sales_resale(api_key=API_KEY):
     """
     gasoline sales per month to resellers in MGAL/D
     total includes bulk sales, DTW sales, and rack sales
-    :param api_key:
-    :return:
+    :param api_key: str, api key from EIA.gov
+
+    :return: pandas dataframe
     """
 
     url = f"https://api.eia.gov/v2/petroleum/cons/refmg/data/?api_key={api_key}&\
@@ -318,11 +326,10 @@ def gasoline_sales_resale(api_key=API_KEY):
 def energy_consumption(api_key=API_KEY, end=None):
     """
     monthly energy consumption in the USA in quadrillion BTU
-    :param
-    api_key: str, api key from EIA.gov
-    end: str, end date of data, format YYYY-MM, default is today
-    :return:
-    pandas dataframe
+    :param api_key: str, api key from EIA.gov
+    :param end: str, end date of data, format YYYY-MM, default is today
+
+    :return: pandas dataframe
     """
     if end is None:
         end = pd.Timestamp.today().strftime('%Y-%m')
@@ -339,12 +346,13 @@ def energy_consumption(api_key=API_KEY, end=None):
 
 
 def refinery_net_input(api_key=API_KEY, daily=False):
-    """monthly net inouts of crude oil to refineries in MBBL/D or MBBL
-    :param
-    api_key: str, api key from EIA.gov
-    daily: bool, if True, returns monthly data in MBBL/D, if False, returns monthly data in MBBL
-    :return:
-    pandas dataframe"""
+    """
+    monthly net inouts of crude oil to refineries in MBBL/D or MBBL
+    :param api_key: str, api key from EIA.gov
+    :param daily: bool, if True, returns monthly data in MBBL/D, if False, returns monthly data in MBBL
+
+    :return: pandas dataframe
+    """
 
     url = f"https://api.eia.gov/v2/petroleum/pnp/inpt2/data/?api_key={api_key}&\
     frequency=monthly&data[0]=value&facets[product][]=EPC0&facets[duoarea][]=NUS&\
@@ -375,13 +383,13 @@ def exports(api_key=API_KEY, daily=False):
 
 # forecasts (provided by short term energy outlook on EIA.gov)
 def crude_production_forecast(api_key=API_KEY, start='2000-01', end=None):
-    """get STEO forecast for crude oil production in the USA in MBBL/D
-    :param
-    api_key: str, api key from EIA.gov
-    start: str, start date of data, format YYYY-MM, default is 2000-01
-    end: str, end date of data, format YYYY-MM, default is today
-    :return:
-    pandas dataframe
+    """
+    get STEO forecast for crude oil production in the USA in MBBL/D
+    :param api_key: str, api key from EIA.gov
+    :param start: str, start date of data, format YYYY-MM, default is 2000-01
+    :param end: str, end date of data, format YYYY-MM, default is today
+
+    :return: pandas dataframe
     """
 
     if end is None:
@@ -398,6 +406,14 @@ def crude_production_forecast(api_key=API_KEY, start='2000-01', end=None):
 
 
 def world_prod_cons(api_key=API_KEY, start='2000-01', end=None):
+    """
+    get STEO forecast for world liquid fuels production and consumption in millions of barrels per day
+    :param api_key: str, api key from EIA.gov
+    :param start: str, start date of data, format YYYY-MM, default is 2000-01
+    :param end: str, end date of data, format YYYY-MM, default is today
+
+    :return: pandas dataframe
+    """
     if end is None:
         end = pd.Timestamp.today().strftime('%Y-%m')
 
@@ -415,6 +431,12 @@ def world_prod_cons(api_key=API_KEY, start='2000-01', end=None):
 
 
 def weekly_field_production(api_key=API_KEY):
+    """
+    get weekly field production in the USA in MBBL/D
+    :param api_key: str, api key from EIA.gov
+
+    :return: pandas dataframe
+    """
 
     url = f"https://api.eia.gov/v2/petroleum/sum/sndw/data/?api_key={api_key}&\
     frequency=weekly&data[0]=value&facets[product][]=EP00&facets[product][]=EPC0&\
