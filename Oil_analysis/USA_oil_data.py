@@ -93,9 +93,9 @@ def proved_nonprod_reserves(api_key=API_KEY):
     return df
 
 
-def weekly_stocks(api_key=API_KEY, crude_only=True):
+def weekly_stocks_SPR(api_key=API_KEY, crude_only=True):
     """
-    Weekly stocks of crude oil and petroleum products in MBBL
+    Weekly stocks of crude oil and petroleum products in MBBL incluuding SPR
     :param api_key: str, api key from EIA.gov
     :param crude_only: bool, if True, only crude oil stocks are returned
 
@@ -107,9 +107,19 @@ def weekly_stocks(api_key=API_KEY, crude_only=True):
         product = 'EP00'
 
     url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
-    frequency=weekly&data[0]=value&facets[duoarea][]=NUS&facets[product][]={product}&\
-    facets[process][]=SAE&sort[0][column]=period&sort[0][direction]=desc&\
-    offset=0&length=5000"
+    frequency=weekly&data[0]=value&facets[product][]={product}&facets[process][]=SAE&\
+    sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
+
+    df = get_request(url)
+    df.rename(columns={'value': 'stocks'}, inplace=True)
+
+    return df['stocks']
+
+
+def weekly_stocks(api_key=API_KEY):
+    url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
+    frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[process][]=SAX&\
+    facets[duoarea][]=NUS&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
 
     df = get_request(url)
     df.rename(columns={'value': 'stocks'}, inplace=True)
