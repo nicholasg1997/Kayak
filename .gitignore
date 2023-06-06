@@ -1,5 +1,5 @@
 .env
 test_scripts.ipynb
 FRED_key.txt
-/Weather_Analysis/RawData/
-/Weather_Analysis/models/
+/Weather_Analysis/models
+/Weather_Analysis/RawData
