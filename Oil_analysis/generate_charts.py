@@ -283,5 +283,8 @@ class MonthlyCharting:
 
 
 if __name__ == '__main__':
-    charts = MonthlyCharting()
-    charts.supply_disposition()
+    monthly = MonthlyCharting()
+    monthly.supply_disposition()
+
+    weekly = WeeklyCharting()
+    weekly.generate_all_charts()
