@@ -34,8 +34,8 @@ class Charting:
         self.production = oil.weekly_field_production().sort_index()
 
     def total_stocks(self):
-        weekly_stocks = self.weekly_stocks()
-        spr = self.spr_reserves()
+        weekly_stocks = self.weekly_stocks.copy()
+        spr = self.spr.copy()
 
         merged = pd.merge(weekly_stocks, spr, on='period')
         merged.sort_index(inplace=True)
@@ -54,9 +54,11 @@ class Charting:
         plt.xlabel('Date')
         plt.ylabel('MBBL')
         plt.savefig(f'{self.save_path}/total_stocks_{self.today}.png', dpi=300)
+        del weekly_stocks
+        del spr
 
     def stocks_by_year(self):
-        weekly_stocks = self.weekly_stocks()
+        weekly_stocks = self.weekly_stocks.copy()
 
         weekly_stocks = weekly_stocks.to_frame()
         weekly_stocks['year'] = weekly_stocks.index.year
@@ -80,9 +82,11 @@ class Charting:
         plt.xlabel('Month')
         plt.ylabel('MBBL')
         plt.savefig(f'{self.save_path}/stocks_by_year_{self.today}.png', dpi=300)
+        del weekly_stocks
 
     def weekly_stock_change(self):
-        weekly_stocks = self.weekly_stocks()
+        weekly_stocks = self.weekly_stocks.copy()
+
         weekly_stocks = weekly_stocks.to_frame()
 
         weekly_stocks['year'] = weekly_stocks.index.year
@@ -117,10 +121,11 @@ class Charting:
         plt.ylabel('MBBL/D')
         plt.title('Change in Stocks (YoY) by week (Including SPR)')
         plt.savefig(f'{self.save_path}/weekly_stock_change_{self.today}.png', dpi=300)
+        del weekly_stocks
 
     def imp_exp(self):
-        imports = self.imports
-        exports = self.exports
+        imports = self.imports.copy()
+        exports = self.exports.copy()
 
         imports_exports = pd.merge(imports, exports, on='period')
 
@@ -135,6 +140,8 @@ class Charting:
         plt.ylabel('MBBL/D')
         plt.title('Imports, Exports and Net Imports')
         plt.savefig(f'{self.save_path}/net_imports_{self.today}.png', dpi=300)
+        del imports
+        del exports
 
     def crude_production_forecast(self):
         fig, ax = plt.subplots(figsize=(10, 5))
@@ -165,14 +172,14 @@ class Charting:
         plt.savefig(f'{self.save_path}/world_prod_cons_{self.today}.png', dpi=300)
 
     def supply_injections(self):
-        stocks = self.weekly_stocks() / 7
+        stocks = self.weekly_stocks.copy().to_frame() / 7
         stocks['change'] = stocks['stocks'].diff(-1)
         stocks['Stock_change'] = stocks['change'].diff(-52)
         stocks = stocks.sort_index()
 
-        product_supplied = self.product_supplied() * -1
-        net_imports = self.net_imports()
-        production = self.production()
+        product_supplied = self.product_supplied.copy() * -1
+        net_imports = self.net_imports.copy()
+        production = self.production.copy()
 
         master_df = pd.merge(product_supplied, net_imports, on='period')
         master_df = pd.merge(master_df, production, on='period')
@@ -204,6 +211,10 @@ class Charting:
         plt.ylabel('YoY Change (MBBL/D)')
         plt.xlabel('date')
         plt.savefig(f'{self.save_path}/supply_injections_{self.today}.png', dpi=300)
+        del stocks
+        del product_supplied
+        del net_imports
+        del production
 
     def generate_all_charts(self):
         self.crude_production_forecast()
@@ -211,6 +222,10 @@ class Charting:
         self.supply_injections()
         self.weekly_stock_change()
         self.imp_exp()
+
+
+charts = Charting()
+charts.generate_all_charts()
 
 
 
