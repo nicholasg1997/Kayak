@@ -223,9 +223,9 @@ class Charting:
         self.weekly_stock_change()
         self.imp_exp()
 
-
-charts = Charting()
-charts.generate_all_charts()
+if __name__ == '__main__':
+    charts = Charting()
+    charts.generate_all_charts()
 
 
 
