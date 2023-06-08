@@ -52,8 +52,7 @@ class Charting:
         plt.ylabel('MBBL')
         plt.savefig(f'{self.save_path}/total_stocks_{self.today}.png', dpi=300)
         plt.close()
-        del weekly_stocks
-        del spr
+        del weekly_stocks, spr
 
     def stocks_by_year(self):
         weekly_stocks = self.weekly_stocks.copy()
@@ -141,8 +140,7 @@ class Charting:
         plt.title('Imports, Exports and Net Imports')
         plt.savefig(f'{self.save_path}/net_imports_{self.today}.png', dpi=300)
         plt.close()
-        del imports
-        del exports
+        del imports, exports
 
     def crude_production_forecast(self):
         fig, ax = plt.subplots(figsize=(10, 5))
@@ -215,10 +213,7 @@ class Charting:
         plt.xlabel('date')
         plt.savefig(f'{self.save_path}/supply_injections_{self.today}.png', dpi=300)
         plt.close()
-        del stocks
-        del product_supplied
-        del net_imports
-        del production
+        del stocks, product_supplied, net_imports, production
 
     def generate_all_charts(self):
         self.crude_production_forecast()
