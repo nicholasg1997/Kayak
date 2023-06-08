@@ -14,14 +14,18 @@ class Charting:
         self.forecast_start_date = '2015-01-01'
         self.forecast_end_date = '2025-01-01'
         self.start_date = '2022-01-01'
-        self.only_crude = True
+        self.crude_only = True
         self.save_path = 'charts/'
         self.get_data()
 
     def get_data(self):
+        """
+        Get all data needed for charts from USA_oil_data.py
+        """
+        self.ending_stocks = oil.ending_stocks(crude_only=self.crude_only)
         self.weekly_stocks = oil.weekly_stocks()
         self.spr = oil.spr_reserves()
-        self.imports, self.exports = oil.imports_exports(only_crude=self.only_crude)
+        self.imports, self.exports = oil.imports_exports(crude_only=self.crude_only)
         self.net_imports = self.imports - self.exports
         self.net_imports = self.net_imports.rename('net_imports')
         self.forecast = oil.crude_production_forecast(end=self.forecast_end_date, start=self.forecast_start_date)
@@ -31,7 +35,10 @@ class Charting:
         self.production = oil.weekly_field_production().sort_index()
 
     def total_stocks(self):
-        weekly_stocks = self.weekly_stocks.copy()
+        """
+        generates a chart of total crude stocks vs SPR
+        """
+        weekly_stocks = self.ending_stocks.copy()
         spr = self.spr.copy()
 
         merged = pd.merge(weekly_stocks, spr, on='period')
@@ -55,7 +62,10 @@ class Charting:
         del weekly_stocks, spr
 
     def stocks_by_year(self):
-        weekly_stocks = self.weekly_stocks.copy()
+        """
+        generates a chart of crude stocks by year
+        """
+        weekly_stocks = self.ending_stocks.copy()
 
         weekly_stocks = weekly_stocks.to_frame()
         weekly_stocks['year'] = weekly_stocks.index.year
@@ -66,8 +76,8 @@ class Charting:
         fig, ax = plt.subplots()
 
         for name, group in grouped:
-            ax.plot(group['month'], group['stocks'], label=name)
-        ax.plot(monthly_average.index, monthly_average['stocks'], label='average')
+            ax.plot(group['month'], group['ending_stocks'], label=name)
+        ax.plot(monthly_average.index, monthly_average['ending_stocks'], label='average')
         plt.ticklabel_format(axis='y', style='plain')
         plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
         # add horizontal lines
@@ -221,6 +231,8 @@ class Charting:
         self.supply_injections()
         self.weekly_stock_change()
         self.imp_exp()
+        self.total_stocks()
+        self.stocks_by_year()
 
 
 if __name__ == '__main__':

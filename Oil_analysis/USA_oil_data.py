@@ -95,7 +95,7 @@ def proved_nonprod_reserves(api_key=API_KEY):
 
 def weekly_stocks_SPR(api_key=API_KEY, crude_only=True):
     """
-    Weekly stocks of crude oil and petroleum products in MBBL incluuding SPR
+    Weekly stocks of crude oil and petroleum products in MBBL including SPR
     :param api_key: str, api key from EIA.gov
     :param crude_only: bool, if True, only crude oil stocks are returned
 
@@ -117,6 +117,12 @@ def weekly_stocks_SPR(api_key=API_KEY, crude_only=True):
 
 
 def weekly_stocks(api_key=API_KEY):
+    """
+    Weekly stocks of crude oil and petroleum products in MBBL excluding SPR
+    :param api_key: str, api key from EIA.gov
+
+    :return: pandas dataframe
+    """
     url = f"https://api.eia.gov/v2/petroleum/stoc/wstk/data/?api_key={api_key}&\
     frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[process][]=SAX&\
     facets[duoarea][]=NUS&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
@@ -144,7 +150,7 @@ def spr_reserves(api_key=API_KEY):
     return df
 
 
-def ending_stocks(api_key=API_KEY, just_crude=True):
+def ending_stocks(api_key=API_KEY, crude_only=True):
     """
     weekly ending stocks of crude oil or crude oil and petroleum products in MBBL
     :param api_key: str, api key from EIA.gov
@@ -152,7 +158,7 @@ def ending_stocks(api_key=API_KEY, just_crude=True):
 
     :return:pandas dataframe
     """
-    if just_crude:
+    if crude_only:
         product = "EPC0"
     else:
         product = "EP00"
@@ -242,7 +248,7 @@ def monthly_product_supplied(api_key=API_KEY):
     return df
 
 
-def imports_exports(api_key=API_KEY, only_crude=True):
+def imports_exports(api_key=API_KEY, crude_only=True):
     """
     Get the data from EIA.gov on crude oil imports and exports
     returns weekly imports and exports in MBBL/D
@@ -250,7 +256,7 @@ def imports_exports(api_key=API_KEY, only_crude=True):
 
     :return: pandas dataframe
     """
-    if only_crude:
+    if crude_only:
         url = f"https://api.eia.gov/v2/petroleum/move/wkly/data/?api_key={api_key}&\
             frequency=weekly&data[0]=value&facets[product][]=EPC0&facets[series][]=WCREXUS2&facets[series][]=WCRIMUS2&\
             sort[0][column]=period&sort[0][direction]=desc&offset=0&length=5000"
