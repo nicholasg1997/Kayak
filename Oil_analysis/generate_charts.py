@@ -8,7 +8,7 @@ import USA_oil_data as oil
 sns.set_style("whitegrid")
 
 
-class Charting:
+class WeeklyCharting:
     def __init__(self):
         self.today = pd.to_datetime('today').date()
         self.forecast_start_date = '2015-01-01'
@@ -235,6 +235,53 @@ class Charting:
         self.stocks_by_year()
 
 
+class MonthlyCharting:
+    def __init__(self):
+        self.get_data()
+        self.calculate_net_imports()
+        self.save_path = 'charts'
+        self.today = pd.to_datetime('today')
+
+    def get_data(self):
+        self.field_production = oil.monthly_field_production()
+        self.imports = oil.monthly_imports()
+        self.adjustments = oil.monthly_supply_adj()
+
+        self.net_input = oil.monthly_net_input() * -1
+        self.exports = oil.monthly_exports()
+        self.stock_change = oil.monthly_stock_changes().sort_index()
+
+    def calculate_net_imports(self):
+        net_imports = self.imports - self.exports
+        self.net_imports = net_imports.rename('net_imports')
+
+    def supply_disposition(self):
+        master_df = pd.merge(self.field_production, self.net_imports, on='period')
+        master_df = pd.merge(master_df, self.adjustments, on='period')
+        master_df = pd.merge(master_df, self.net_input, on='period')
+        master_df = master_df.sort_index()
+
+        start_date = '2020-01-01'
+        end_date = '2023-06-06'
+        master_df = master_df[start_date:end_date]
+        stock_change = self.stock_change[start_date:end_date]
+
+        stock_change.index = pd.to_datetime(stock_change.index)
+
+        ax = stock_change.plot.bar(ylabel="MBBL", xlabel="Date", figsize=(15, 8),
+                                   color='black', position=0, width=0.3)
+
+        master_df.plot.bar(stacked=True, sharex=True, ax=ax, position=1, width=0.3)
+
+        ax.xaxis.set_major_formatter(plt.FixedFormatter(stock_change.index.strftime('%Y-%m-%d')))
+
+        plt.title('Monthly Supply and Disposition')
+        plt.legend(loc='upper center', bbox_to_anchor=(0.5, 0.05), ncol=5)
+        plt.ylabel('YoY Change (MBBL/D)')
+        plt.xlabel('date')
+        plt.savefig(f'{self.save_path}/supply_disposition_{self.today}.png', dpi=300)
+
+
 if __name__ == '__main__':
-    charts = Charting()
-    charts.generate_all_charts()
+    charts = MonthlyCharting()
+    charts.supply_disposition()
