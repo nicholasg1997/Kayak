@@ -452,3 +452,72 @@ def weekly_field_production(api_key=API_KEY):
     df = get_request(url, group=False)
     df = df['value'].rename('weekly_field_production')
     return df
+
+
+# monthly data
+# --------------------------------------------------------------------------------------------------------------
+
+def monthly_exports(api_key=API_KEY):
+    url = f"https://api.eia.gov/v2/petroleum/sum/snd/data/?api_key={api_key}&\
+    frequency=monthly&data[0]=value&facets[duoarea][]=NUS&facets[duoarea][]=NUS-Z00&\
+    facets[product][]=EPC0&facets[series][]=MCREXUS2&sort[0][column]=period&sort[0][direction]=desc&\
+    offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    df = df['value'].rename('monthly_exports')
+    return df
+
+
+def monthly_imports(api_key=API_KEY):
+    url = f"https://api.eia.gov/v2/petroleum/sum/snd/data/?api_key={api_key}&\
+        frequency=monthly&data[0]=value&facets[duoarea][]=NUS&facets[duoarea][]=NUS-Z00&\
+        facets[product][]=EPC0&facets[series][]=MCRIMUS2&sort[0][column]=period&sort[0][direction]=desc&\
+        offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    df = df['value'].rename('monthly_imports')
+    return df
+
+
+def monthly_stock_changes(api_key=API_KEY):
+    url = f"https://api.eia.gov/v2/petroleum/sum/snd/data/?api_key={api_key}&\
+            frequency=monthly&data[0]=value&facets[duoarea][]=NUS&facets[duoarea][]=NUS-Z00&\
+            facets[product][]=EPC0&facets[series][]=MCRSCUS2&sort[0][column]=period&sort[0][direction]=desc&\
+            offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    df = df['value'].rename('monthly_stock_changes')
+    return df
+
+
+def monthly_supply_adj(api_key=API_KEY):
+    url = f"https://api.eia.gov/v2/petroleum/sum/snd/data/?api_key={api_key}&\
+            frequency=monthly&data[0]=value&facets[duoarea][]=NUS&facets[duoarea][]=NUS-Z00&\
+            facets[product][]=EPC0&facets[series][]=MCRUA_NUS_2&sort[0][column]=period&sort[0][direction]=desc&\
+            offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    df = df['value'].rename('monthly_supply_adj')
+    return df
+
+
+def monthly_field_production(api_key=API_KEY):
+    url = f"https://api.eia.gov/v2/petroleum/sum/snd/data/?api_key={api_key}&\
+            frequency=monthly&data[0]=value&facets[duoarea][]=NUS&facets[duoarea][]=NUS-Z00&\
+            facets[product][]=EPC0&facets[series][]=MCRFPUS2&sort[0][column]=period&sort[0][direction]=desc&\
+            offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    df = df['value'].rename('monthly_field_production')
+    return df
+
+
+def monthly_net_input(api_key=API_KEY):
+    url = f"https://api.eia.gov/v2/petroleum/sum/snd/data/?api_key={api_key}&\
+            frequency=monthly&data[0]=value&facets[duoarea][]=NUS&facets[duoarea][]=NUS-Z00&\
+            facets[product][]=EPC0&facets[series][]=MCRRIUS2&sort[0][column]=period&sort[0][direction]=desc&\
+            offset=0&length=5000"
+
+    df = get_request(url, group=False)
+    df = df['value'].rename('monthly_net_input')
+    return df
