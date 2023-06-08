@@ -1,11 +1,8 @@
-import numpy as np
-import pandas as pd
-import USA_oil_data as oil
-import prices
-from FRED_oil_data import get_fred_data
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
+import pandas as pd
 import seaborn as sns
+
+import USA_oil_data as oil
 
 # sns.set()
 sns.set_style("whitegrid")
@@ -54,6 +51,7 @@ class Charting:
         plt.xlabel('Date')
         plt.ylabel('MBBL')
         plt.savefig(f'{self.save_path}/total_stocks_{self.today}.png', dpi=300)
+        plt.close()
         del weekly_stocks
         del spr
 
@@ -82,6 +80,7 @@ class Charting:
         plt.xlabel('Month')
         plt.ylabel('MBBL')
         plt.savefig(f'{self.save_path}/stocks_by_year_{self.today}.png', dpi=300)
+        plt.close()
         del weekly_stocks
 
     def weekly_stock_change(self):
@@ -121,6 +120,7 @@ class Charting:
         plt.ylabel('MBBL/D')
         plt.title('Change in Stocks (YoY) by week (Including SPR)')
         plt.savefig(f'{self.save_path}/weekly_stock_change_{self.today}.png', dpi=300)
+        plt.close()
         del weekly_stocks
 
     def imp_exp(self):
@@ -140,6 +140,7 @@ class Charting:
         plt.ylabel('MBBL/D')
         plt.title('Imports, Exports and Net Imports')
         plt.savefig(f'{self.save_path}/net_imports_{self.today}.png', dpi=300)
+        plt.close()
         del imports
         del exports
 
@@ -154,6 +155,7 @@ class Charting:
         plt.xlabel('Date')
         plt.ylabel('Production (millions of MBBL)')
         plt.savefig(f'{self.save_path}/crude_production_forecast_{self.today}.png', dpi=300)
+        plt.close()
 
     def world_prod_cons(self):
         fig, ax = plt.subplots(figsize=(10, 5))
@@ -170,6 +172,7 @@ class Charting:
         plt.legend()
 
         plt.savefig(f'{self.save_path}/world_prod_cons_{self.today}.png', dpi=300)
+        plt.close()
 
     def supply_injections(self):
         stocks = self.weekly_stocks.copy().to_frame() / 7
@@ -211,6 +214,7 @@ class Charting:
         plt.ylabel('YoY Change (MBBL/D)')
         plt.xlabel('date')
         plt.savefig(f'{self.save_path}/supply_injections_{self.today}.png', dpi=300)
+        plt.close()
         del stocks
         del product_supplied
         del net_imports
@@ -223,12 +227,7 @@ class Charting:
         self.weekly_stock_change()
         self.imp_exp()
 
+
 if __name__ == '__main__':
     charts = Charting()
     charts.generate_all_charts()
-
-
-
-
-
-
