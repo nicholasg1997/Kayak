@@ -5,3 +5,5 @@ FRED_key.txt
 /Weather_Analysis/RawData
 /Weather_Analysis/AutogluonModels/
 /Oil_analysis/charts/
+/Weather_Analysis/models/
+Weather_Analysis/models/Predictor_ecmwf-eps_10/learner.pkl
