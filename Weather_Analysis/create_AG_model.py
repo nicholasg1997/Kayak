@@ -1,7 +1,15 @@
+import os.path
+
 import pandas as pd
 from autogluon.tabular import TabularDataset
+
 from MultiLabelPredictor import MultilabelPredictor
-import os.path
+from process_raw_data import ProcessRawData
+
+if not os.path.exists('master_df.pkl'):
+    print('master_df.pkl not found, creating it')
+    ProcessRawData()
+
 
 master_df = pd.read_pickle('master_df.pkl')
 
@@ -14,8 +22,8 @@ labels = ['ecmwf-eps_9', 'ecmwf-eps_10', 'ecmwf-eps_11', 'ecmwf-eps_12', 'ecmwf-
           'ecmwf-eps_14']
 
 train_len = 0.8
-train_data = TabularDataset(master_df[:int(len(master_df)*train_len)])
-test_data = TabularDataset(master_df[int(len(master_df)*train_len):])
+train_data = TabularDataset(master_df[:int(len(master_df) * train_len)])
+test_data = TabularDataset(master_df[int(len(master_df) * train_len):])
 
 save_path = 'models'
 
@@ -35,7 +43,3 @@ evaluations = multi_predictor.evaluate(test_data)
 
 print("evaluations")
 print(evaluations)
-
-
-
-

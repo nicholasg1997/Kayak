@@ -1,7 +1,8 @@
-from autogluon.tabular import TabularDataset, TabularPredictor
 from autogluon.common.utils.utils import setup_outputdir
 from autogluon.core.utils.loaders import load_pkl
 from autogluon.core.utils.savers import save_pkl
+from autogluon.tabular import TabularDataset, TabularPredictor
+
 
 class MultilabelPredictor():
     """ Tabular Predictor for predicting multiple columns in table.
@@ -33,9 +34,11 @@ class MultilabelPredictor():
 
     multi_predictor_file = 'multilabel_predictor.pkl'
 
-    def __init__(self, labels, path=None, problem_types=None, eval_metrics=None, consider_labels_correlation=True, **kwargs):
+    def __init__(self, labels, path=None, problem_types=None, eval_metrics=None, consider_labels_correlation=True,
+                 **kwargs):
         if len(labels) < 2:
-            raise ValueError("MultilabelPredictor is only intended for predicting MULTIPLE labels (columns), use TabularPredictor for predicting one label (column).")
+            raise ValueError(
+                "MultilabelPredictor is only intended for predicting MULTIPLE labels (columns), use TabularPredictor for predicting one label (column).")
         if (problem_types is not None) and (len(problem_types) != len(labels)):
             raise ValueError("If provided, `problem_types` must have same length as `labels`")
         if (eval_metrics is not None) and (len(eval_metrics) != len(labels)):
@@ -47,7 +50,7 @@ class MultilabelPredictor():
         if eval_metrics is None:
             self.eval_metrics = {}
         else:
-            self.eval_metrics = {labels[i] : eval_metrics[i] for i in range(len(labels))}
+            self.eval_metrics = {labels[i]: eval_metrics[i] for i in range(len(labels))}
         problem_type = None
         eval_metric = None
         for i in range(len(labels)):
@@ -57,7 +60,8 @@ class MultilabelPredictor():
                 problem_type = problem_types[i]
             if eval_metrics is not None:
                 eval_metric = eval_metrics[i]
-            self.predictors[label] = TabularPredictor(label=label, problem_type=problem_type, eval_metric=eval_metric, path=path_i, **kwargs)
+            self.predictors[label] = TabularPredictor(label=label, problem_type=problem_type, eval_metric=eval_metric,
+                                                      path=path_i, **kwargs)
 
     def fit(self, train_data, tuning_data=None, **kwargs):
         """ Fits a separate TabularPredictor to predict each of the labels.
@@ -85,7 +89,7 @@ class MultilabelPredictor():
             if not self.consider_labels_correlation:
                 labels_to_drop = [l for l in self.labels if l != label]
             else:
-                labels_to_drop = [self.labels[j] for j in range(i+1, len(self.labels))]
+                labels_to_drop = [self.labels[j] for j in range(i + 1, len(self.labels))]
             train_data = train_data_og.drop(labels_to_drop, axis=1)
             if tuning_data is not None:
                 tuning_data = tuning_data_og.drop(labels_to_drop, axis=1)
@@ -140,7 +144,7 @@ class MultilabelPredictor():
                 data[label] = predictor.predict(data, **kwargs)
         return eval_dict
 
-    def feature_imp(self,data, **kwargs):
+    def feature_imp(self, data, **kwargs):
         data = self._get_data(data)
         eval_dict = {}
         for label in self.labels:
@@ -154,7 +158,7 @@ class MultilabelPredictor():
         for label in self.labels:
             if not isinstance(self.predictors[label], str):
                 self.predictors[label] = self.predictors[label].path
-        save_pkl.save(path=self.path+self.multi_predictor_file, object=self)
+        save_pkl.save(path=self.path + self.multi_predictor_file, object=self)
         print(f"MultilabelPredictor saved to disk. Load with: MultilabelPredictor.load('{self.path}')")
 
     @classmethod
@@ -163,7 +167,7 @@ class MultilabelPredictor():
         path = os.path.expanduser(path)
         if path[-1] != os.path.sep:
             path = path + os.path.sep
-        return load_pkl.load(path=path+cls.multi_predictor_file)
+        return load_pkl.load(path=path + cls.multi_predictor_file)
 
     def get_predictor(self, label):
         """ Returns TabularPredictor which is used to predict this label. """
