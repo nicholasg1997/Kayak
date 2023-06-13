@@ -4,7 +4,7 @@ from datetime import datetime, time
 import pandas as pd
 
 
-def ProcessRawData():
+def ProcessRawData(path="RawData", degree_days='gw_hdd'):
     path = "RawData"
 
     def extract_date_time(filename):
@@ -33,7 +33,7 @@ def ProcessRawData():
         combined_datetime = datetime.combine(date.date(), time_value)
         return combined_datetime
 
-    degree_days = 'gw_hdd'
+    degree_days = degree_days
     ecmwf_files = glob.glob(path + f'/ecmwf.*.[01][02].{degree_days}.csv')
     ecmwf_sorted_files = sorted(ecmwf_files, key=lambda x: (x.split('.')[1], x.split('.')[2]))[3:]
 
@@ -249,7 +249,7 @@ def ProcessRawData():
         [gfs_ens_bc_change_df, cmc_ens_change_df, ecmwf_change_df, errors_df, day_8_error, ecmwf_eps_change_df], axis=1)
     master_df.fillna(0, inplace=True)
 
-    master_df.to_pickle('master_df.pkl')
+    master_df.to_pickle(f'master_df_{degree_days}.pkl')
 
 
 if __name__ == '__main__':
