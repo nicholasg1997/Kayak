@@ -32,10 +32,9 @@ if not os.path.exists(save_path):
     os.makedirs(save_path)
 
 multi_predictor = MultilabelPredictor(labels=labels, path=save_path)
-multi_predictor.fit(train_data) # add presets='best_quality' for better results but longer training time
+multi_predictor.fit(train_data, presets='best_quality') #presets = ['best_quality', 'optimize_for_deployment']
 
 # Predict on test data
-
 test_data_nolab = test_data.drop(columns=labels)
 test_data_nolab.head()
 
