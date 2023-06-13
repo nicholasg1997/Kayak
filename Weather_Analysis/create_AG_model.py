@@ -26,6 +26,15 @@ if not os.path.exists(save_path):
 multi_predictor = MultilabelPredictor(labels=labels, path=save_path)
 multi_predictor.fit(train_data, presets='best_quality')
 
+# Predict on test data
+
+test_data_nolab = test_data.drop(columns=labels)
+test_data_nolab.head()
+
+evaluations = multi_predictor.evaluate(test_data)
+
+print("evaluations")
+print(evaluations)
 
 
 
