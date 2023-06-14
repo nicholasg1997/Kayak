@@ -83,7 +83,7 @@ def ProcessRawData(path="RawData", degree_days='gw_hdd'):
         d2 = str(date)[:10]
         d1 = str(prev_date)[:10]
 
-        if d2 != d1:
+        if d2 == d1:
             offset = 1
         else:
             offset = 0
@@ -91,11 +91,11 @@ def ProcessRawData(path="RawData", degree_days='gw_hdd'):
         changes = []
         try:
             for day in range(8, 14):
-                changes.append(ecmwf_eps_df.iloc[day - offset]['Value'] - prev_ecmwf_eps_df.iloc[day]['Value'])
+                changes.append(ecmwf_eps_df.iloc[day]['Value'] - prev_ecmwf_eps_df.iloc[day + offset]['Value'])
             new_row = pd.DataFrame([changes], columns=ecmwf_eps_change_df.columns, index=[date])
             ecmwf_eps_change_df = pd.concat([ecmwf_eps_change_df, new_row])
         except IndexError:
-            print(f"error on {date}")
+            #print(f"error on {date}")
             passed_rows.append(i)
 
     ecmwf_change_df = pd.DataFrame(columns=['ecmwf_diff_8', 'ecmwf_diff_9', ])
@@ -110,7 +110,7 @@ def ProcessRawData(path="RawData", degree_days='gw_hdd'):
             ecmwf = ecmwf_df.iloc[8]
             ecmwf_eps = ecmwf_eps_df.iloc[9]
         except IndexError:
-            print(f"error on row: {i}")
+            #print(f"error on row: {i}")
             passed_rows.append(i)
             continue
 
@@ -118,19 +118,19 @@ def ProcessRawData(path="RawData", degree_days='gw_hdd'):
         prev_date = get_date(ecmwf_eps_df, ecmwf_eps_sorted_files[i - 1])
         d2 = str(date)[:10]
         d1 = str(prev_date)[:10]
-        if d2 != d1:
+        if d2 == d1:
             offset = 1
         else:
             offset = 0
 
         changes = []
         try:
-            for day in range(8, 10):
-                changes.append(ecmwf_df.iloc[day - offset]['Value'] - ecmwf_eps_df.iloc[day]['Value'])
+            for day in range(7, 9):
+                changes.append(ecmwf_df.iloc[day]['Value'] - ecmwf_eps_df.iloc[day + offset]['Value'])
             new_row = pd.DataFrame([changes], columns=ecmwf_change_df.columns, index=[date])
             ecmwf_change_df = pd.concat([ecmwf_change_df, new_row])
         except IndexError:
-            print(f"error on {date}")
+            #print(f"error on {date}")
             passed_rows.append(i)
 
     gfs_ens_bc_change_df = pd.DataFrame(columns=['gfs-ens-bc_9', 'gfs-ens-bc_10', 'gfs-ens-bc_11', 'gfs-ens-bc_12',
@@ -146,13 +146,13 @@ def ProcessRawData(path="RawData", degree_days='gw_hdd'):
             date = get_date(gfs_ens_bc_df, gfs_ens_bc_sorted_files[i])
             prev_date = get_date(prev_ecmwf_eps_df, ecmwf_eps_sorted_files[i - 1])
         except IndexError:
-            print(f"error on row: {i}")
+            #print(f"error on row: {i}")
             passed_rows.append(i)
             continue
 
         d2 = str(date)[:10]
         d1 = str(prev_date)[:10]
-        if d2 != d1:
+        if d2 == d1:
             offset = 1
         else:
             offset = 0
@@ -160,11 +160,11 @@ def ProcessRawData(path="RawData", degree_days='gw_hdd'):
         changes = []
         try:
             for day in range(8, 14):
-                changes.append(gfs_ens_bc_df.iloc[day - offset]['Value'] - prev_ecmwf_eps_df.iloc[day]['Value'])
+                changes.append(gfs_ens_bc_df.iloc[day]['Value'] - prev_ecmwf_eps_df.iloc[day + offset]['Value'])
             new_row = pd.DataFrame([changes], columns=gfs_ens_bc_change_df.columns, index=[date])
             gfs_ens_bc_change_df = pd.concat([gfs_ens_bc_change_df, new_row])
         except IndexError:
-            print(f"error on {date}")
+            #print(f"error on {date}")
             passed_rows.append(i)
 
     cmc_ens_change_df = pd.DataFrame(columns=['cmc-ens_9', 'cmc-ens_10', 'cmc-ens_11', 'cmc-ens_12',
@@ -184,7 +184,7 @@ def ProcessRawData(path="RawData", degree_days='gw_hdd'):
             new_row = pd.DataFrame([changes], columns=cmc_ens_change_df.columns, index=[date])
             cmc_ens_change_df = pd.concat([cmc_ens_change_df, new_row])
         except IndexError:
-            print(f"error on {date}")
+            #print(f"error on {date}")
             passed_rows.append(i)
 
     day_8_error = pd.DataFrame(columns=['day_8_error'])
@@ -211,7 +211,7 @@ def ProcessRawData(path="RawData", degree_days='gw_hdd'):
             new_row = pd.DataFrame([changes], columns=day_8_error.columns, index=[date])
             day_8_error = pd.concat([day_8_error, new_row])
         except IndexError:
-            print(f"error on {date}")
+            #print(f"error on {date}")
             passed_rows.append(i)
 
     errors_df = pd.DataFrame(columns=['error_9', 'error_10', 'error_11', 'error_12', 'error_13', 'error_14'])
@@ -239,7 +239,7 @@ def ProcessRawData(path="RawData", degree_days='gw_hdd'):
             new_row = pd.DataFrame([errors], columns=errors_df.columns, index=[date])
             errors_df = pd.concat([errors_df, new_row])
         except IndexError:
-            print(f"error on {date}")
+            #print(f"error on {date}")
             passed_rows.append(i)
 
     errors_df['noon'] = errors_df.index.hour
