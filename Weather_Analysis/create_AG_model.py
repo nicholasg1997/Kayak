@@ -6,11 +6,11 @@ from autogluon.tabular import TabularDataset
 from MultiLabelPredictor import MultilabelPredictor
 from process_raw_data import ProcessRawData
 
-degree_days = 'gw_hdd'
+degree_days = 'ew_cdd'
 
 if not os.path.exists(f'master_df_{degree_days}.pkl'):
     print(f'master_df_{degree_days}.pkl not found, creating it')
-    ProcessRawData()
+    ProcessRawData(degree_days=degree_days)
 else:
     print(f'master_df_{degree_days}.pkl found, loading it')
 
