@@ -200,7 +200,7 @@ def ProcessRawData(path="RawData", degree_days='gw_hdd'):
         d2 = str(date)[:10]
         d1 = str(prev_date)[:10]
 
-        if d2 != d1:
+        if d2 == d1:
             offset = 1
         else:
             offset = 0
@@ -246,7 +246,8 @@ def ProcessRawData(path="RawData", degree_days='gw_hdd'):
     errors_df['noon'] = errors_df['noon'].apply(lambda x: 1 if x == 12 else 0)
 
     master_df = pd.concat(
-        [gfs_ens_bc_change_df, cmc_ens_change_df, ecmwf_change_df, errors_df, day_8_error, ecmwf_eps_change_df], axis=1)
+        [gfs_ens_bc_change_df, cmc_ens_change_df,
+         ecmwf_change_df, day_8_error, errors_df, ecmwf_eps_change_df], axis=1)
     master_df.fillna(0, inplace=True)
 
     master_df.to_pickle(f'master_df_{degree_days}.pkl')
