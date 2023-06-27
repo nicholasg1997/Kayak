@@ -7,3 +7,5 @@ FRED_key.txt
 /Oil_analysis/charts/
 /Weather_Analysis/models/
 Weather_Analysis/models/Predictor_ecmwf-eps_10/learner.pkl
+/Weather_Analysis/predictions.pkl
+/Weather_Analysis/predictions_cdd.pkl
