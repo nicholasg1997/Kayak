@@ -521,3 +521,7 @@ def monthly_net_input(api_key=API_KEY):
     df = get_request(url, group=False)
     df = df['value'].rename('monthly_net_input')
     return df
+
+# solar data
+# --------------------------------------------------------------------------------------------------------------
+
